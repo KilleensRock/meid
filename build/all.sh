@@ -30,6 +30,10 @@ rm -f "$OUT/_keyorder.json"
 # sniffs the gzip magic bytes and inflates when the host has not already.
 find "$OUT" -name '*.json.gz' -exec sh -c 'mv "$1" "${1%.gz}"' _ {} \;
 
+# The updates layer stays plain, readable JSON: a volunteer should be able to
+# open it and add a year by hand. It is not generated from the archive.
+cp -f data-src/updates.json "$OUT/updates.json"
+
 cat src/01-head.html src/02-data.js src/03-charts.js src/04-explore.js \
     src/05-org.js src/06-analyse.js src/07-coverage.js src/08-router.js > index.html
 

@@ -1,0 +1,32 @@
+{
+  "_about": {
+    "what": "Years added after the Benefacts archive ends, from sources outside it.",
+    "sign": "Expenditure is stored negative, matching the Benefacts convention.",
+    "caution": "These figures come from the Charities Regulator's annual return, not from a full set of filed accounts. They are headline figures on the Regulator's own definitions and are not line-for-line comparable with the 182 fields Benefacts extracted. Where the two sources overlap they are not merged: the archive is left as it stands."
+  },
+  "_sources": {
+    "cra-ar": {
+      "name": "Charities Regulator — annual reports",
+      "url": "https://www.charitiesregulator.ie/media/yeia3rfc/charity-annual-reports.csv",
+      "licence": "Open data, re-use of public sector information",
+      "retrieved": "2026-11-11",
+      "effective": "2026-05-03",
+      "notes": "Bulk file. 83,051 annual report records. Employee and volunteer counts before 2021 are published as bands ('250-499') and are not used. From 2021 the Regulator collects full-time and part-time counts as integers; the employee figure here is their sum, a headcount, which is not the same measure as the average-employees figure in the Benefacts archive. Government funding is the sum of 'Income: Government or Local Authorities' and 'Income: Other Public Bodies', because charities reclassify between the two."
+    }
+  },
+  "6752590": {
+    "name": "Barnardos - Republic of Ireland CLG",
+    "rcn": "20010027",
+    "src": "cra-ar",
+    "years": [
+      { "y": 2021, "inc": 27589000, "exp": -25427000, "na": 15622000, "emp": 434, "ft": 195, "pt": 239,
+        "gov": 16891000, "don": 7368000, "cash": 15763000, "assets": 22322000, "liab": 6700000, "surplus": 2162000 },
+      { "y": 2022, "inc": 28794000, "exp": -28387000, "na": 16308000, "emp": 471, "ft": 217, "pt": 254,
+        "gov": 17937000, "don": 6259000, "cash": 15864000, "assets": 22721000, "liab": 6413000, "surplus": 407000 },
+      { "y": 2023, "inc": 29684000, "exp": -30439000, "na": 15574000, "emp": 503, "ft": 231, "pt": 272,
+        "gov": 18769000, "don": 7054000, "cash": 15228000, "assets": 21904000, "liab": 6330000, "surplus": -755000 },
+      { "y": 2024, "inc": 31424000, "exp": -32655000, "na": 14343000, "emp": 524, "ft": 241, "pt": 283,
+        "gov": 20628000, "don": 7057000, "cash": 14579000, "assets": 21295000, "liab": 6952000, "surplus": -1231000 }
+    ]
+  }
+}
