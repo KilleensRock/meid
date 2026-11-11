@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Méid — the public record of Irish nonprofits</title>
+<style>
+/* ============================================================
+   Tokens. Dark values are selected for the dark surface, not
+   flipped; declared under both the OS query and the toggle.
+   ============================================================ */
+:root{
+  color-scheme: light;
+  --paper:#f4f3ee; --surface:#fcfcfb; --raise:#ffffff;
+  --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --rule:#c3c2b7; --hair:rgba(11,11,11,.10);
+  --accent:#1a5c3a; --accent-soft:#e6efe9; --accent-ink:#ffffff;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --good:#006300; --warn:#fab219; --crit:#d03b3b;
+  --sel:#eef2f8;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme: dark;
+    --paper:#0d0d0d; --surface:#1a1a19; --raise:#222221;
+    --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --rule:#383835; --hair:rgba(255,255,255,.10);
+    --accent:#4ab87a; --accent-soft:#17251d; --accent-ink:#0b0b0b;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --good:#0ca30c; --sel:#1d2630;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#0d0d0d; --surface:#1a1a19; --raise:#222221;
+  --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --rule:#383835; --hair:rgba(255,255,255,.10);
+  --accent:#4ab87a; --accent-soft:#17251d; --accent-ink:#0b0b0b;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --good:#0ca30c; --sel:#1d2630;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font:14px/1.5 var(--sans);
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit; color:inherit}
+h1,h2,h3{margin:0; font-weight:600; letter-spacing:-.01em}
+
+/* --- shared atoms --- */
+.lab{
+  font-size:10.5px; font-weight:650; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--muted);
+}
+.num{font-variant-numeric:tabular-nums}
+.mut{color:var(--muted)}
+.ink2{color:var(--ink2)}
+.hr{height:1px; background:var(--hair); border:0; margin:0}
+
+/* ============================================================
+   App frame
+   ============================================================ */
+#app{min-height:100vh; display:flex; flex-direction:column}
+
+header.top{
+  position:sticky; top:0; z-index:40;
+  background:var(--paper); border-bottom:1px solid var(--hair);
+}
+.topin{
+  max-width:1560px; margin:0 auto; padding:0 20px;
+  display:flex; align-items:center; gap:22px; height:54px;
+}
+.brand{display:flex; align-items:baseline; gap:9px; flex:0 0 auto}
+.brand b{font-size:15.5px; font-weight:680; letter-spacing:-.015em}
+.brand .tick{
+  width:3px; height:17px; background:var(--accent);
+  border-radius:1px; align-self:center;
+}
+.brand span{font-size:11px; color:var(--muted); letter-spacing:.02em}
+
+nav.views{display:flex; gap:2px; margin-left:4px; min-width:0; overflow-x:auto; scrollbar-width:none}
+nav.views::-webkit-scrollbar{display:none}
+nav.views button{flex:0 0 auto}
+@media (max-width:760px){
+  .topin{gap:12px; padding:0 13px}
+  .brand span{display:none}
+  main{padding:0 13px 44px}
+}
+nav.views button{
+  background:none; border:0; cursor:pointer; padding:7px 11px;
+  border-radius:6px; color:var(--ink2); font-size:13px; font-weight:500;
+}
+nav.views button:hover{background:var(--hair); color:var(--ink)}
+nav.views button[aria-current="page"]{
+  background:var(--accent-soft); color:var(--accent); font-weight:600;
+}
+.topright{margin-left:auto; display:flex; align-items:center; gap:8px}
+.iconbtn{
+  background:none; border:1px solid var(--hair); cursor:pointer;
+  width:30px; height:30px; border-radius:7px; color:var(--ink2);
+  display:grid; place-items:center;
+}
+.iconbtn:hover{background:var(--hair); color:var(--ink)}
+
+main{flex:1; max-width:1560px; width:100%; margin:0 auto; padding:0 20px 56px}
+
+/* loading state */
+#boot{
+  position:fixed; inset:0; background:var(--paper); z-index:90;
+  display:grid; place-items:center; transition:opacity .25s;
+}
+#boot .bx{text-align:center; max-width:300px}
+#boot .bar{
+  height:2px; background:var(--grid); margin-top:18px; overflow:hidden;
+  border-radius:2px;
+}
+#boot .bar i{
+  display:block; height:100%; width:0%; background:var(--accent);
+  transition:width .3s ease;
+}
+#boot small{display:block; margin-top:9px; color:var(--muted); font-size:11.5px}
+
+/* ============================================================
+   Explore: facet rail + results
+   ============================================================ */
+.explore{display:grid; grid-template-columns:232px minmax(0,1fr); gap:24px; padding-top:18px}
+@media (max-width:1000px){ .explore{grid-template-columns:1fr} .rail{order:2} }
+
+.rail{position:sticky; top:72px; align-self:start; max-height:calc(100vh - 96px); overflow-y:auto; padding-right:4px}
+.rail::-webkit-scrollbar{width:8px}
+.rail::-webkit-scrollbar-thumb{background:var(--grid); border-radius:4px}
+.fgroup{margin-bottom:19px}
+.fgroup > .lab{display:block; margin-bottom:7px}
+.chk{
+  display:flex; align-items:center; gap:7px; padding:3px 0;
+  cursor:pointer; font-size:12.5px; color:var(--ink2);
+}
+.chk:hover{color:var(--ink)}
+.chk input{accent-color:var(--accent); margin:0; width:13px; height:13px; flex:0 0 auto}
+.chk .cnt{margin-left:auto; font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums}
+.chk.on{color:var(--ink); font-weight:550}
+.more{
+  background:none; border:0; padding:3px 0; cursor:pointer;
+  color:var(--accent); font-size:11.5px; font-weight:600;
+}
+
+.qbuild{
+  background:var(--surface); border:1px solid var(--hair);
+  border-radius:9px; padding:11px; margin-bottom:19px;
+}
+.qrow{display:flex; gap:5px; margin-bottom:6px}
+.qbuild select,.qbuild input{
+  background:var(--paper); border:1px solid var(--hair); color:var(--ink);
+  border-radius:6px; padding:5px 6px; font:12px var(--sans); min-width:0; flex:1;
+}
+.qbuild input{font-variant-numeric:tabular-nums}
+
+/* search + toolbar */
+.searchwrap{position:relative; margin-bottom:12px}
+.searchwrap svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted)}
+#q{
+  width:100%; padding:11px 13px 11px 36px; font:15px var(--sans);
+  background:var(--surface); color:var(--ink);
+  border:1px solid var(--hair); border-radius:10px;
+}
+#q:focus{outline:2px solid var(--accent); outline-offset:-1px; border-color:transparent}
+#q::placeholder{color:var(--muted)}
+
+.toolbar{
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding-bottom:10px; margin-bottom:2px;
+}
+.resn{font-size:13px; color:var(--ink2)}
+.resn b{color:var(--ink); font-variant-numeric:tabular-nums; font-weight:650}
+.tbtn{
+  background:var(--surface); border:1px solid var(--hair); cursor:pointer;
+  padding:5px 10px; border-radius:7px; font-size:12px; color:var(--ink2);
+  font-weight:550; display:inline-flex; align-items:center; gap:5px;
+}
+.tbtn:hover{border-color:var(--rule); color:var(--ink)}
+.pills{display:flex; gap:5px; flex-wrap:wrap}
+.pill{
+  display:inline-flex; align-items:center; gap:5px; font-size:11.5px;
+  background:var(--accent-soft); color:var(--accent); font-weight:600;
+  padding:3px 5px 3px 8px; border-radius:20px;
+}
+.pill button{background:none; border:0; cursor:pointer; color:inherit; opacity:.65; padding:0 2px; font-size:13px; line-height:1}
+.pill button:hover{opacity:1}
+
+/* ============================================================
+   Data table (windowed)
+   ============================================================ */
+.tblwrap{
+  background:var(--surface); border:1px solid var(--hair);
+  border-radius:10px; overflow:hidden;
+}
+/* Sits directly above #scroller, which scrolls on its own — no stickiness.
+   (Sticky here would offset against .tblwrap's own overflow scrollport.) */
+.thead{
+  display:flex; align-items:stretch; border-bottom:1px solid var(--hair);
+  background:var(--surface); z-index:12;
+}
+.thead div{
+  padding:9px 10px; font-size:10.5px; font-weight:650; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--muted); cursor:pointer;
+  user-select:none; display:flex; align-items:center; gap:4px;
+  white-space:nowrap; overflow:hidden;
+}
+.thead div:hover{color:var(--ink)}
+.thead div.srt{color:var(--accent)}
+.thead div.r{justify-content:flex-end}
+#scroller{height:min(68vh,760px); overflow-y:auto; overflow-x:hidden; position:relative}
+#scroller::-webkit-scrollbar{width:10px}
+#scroller::-webkit-scrollbar-thumb{background:var(--grid); border-radius:5px}
+#spacer{position:relative; width:100%}
+.row{
+  display:flex; align-items:center; position:absolute; left:0; right:0;
+  height:34px; border-bottom:1px solid var(--grid); cursor:pointer;
+}
+.row:hover{background:var(--sel)}
+.row > div{padding:0 10px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:13px}
+.row > div.r{text-align:right; font-variant-numeric:tabular-nums}
+.row .nm{font-weight:520}
+.row .sub{font-size:11px; color:var(--muted)}
+.dot{
+  display:inline-block; width:6px; height:6px; border-radius:50%;
+  margin-right:6px; vertical-align:1px; flex:0 0 auto;
+}
+.empty{padding:52px 20px; text-align:center; color:var(--muted)}
+
+/* ============================================================
+   Cards, stats, sections
+   ============================================================ */
+.card{
+  background:var(--surface); border:1px solid var(--hair);
+  border-radius:10px; padding:16px 18px;
+}
+.card > h3{font-size:13.5px; margin-bottom:3px}
+.card > .lab{display:block; margin-bottom:11px}
+.grid{display:grid; gap:14px}
+.sect{padding-top:26px}
+.sect > h2{font-size:17px; margin-bottom:3px}
+.sect > p.sub{margin:0 0 15px; color:var(--ink2); font-size:13px; max-width:66ch}
+
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--hair); border:1px solid var(--hair); border-radius:10px; overflow:hidden}
+.stat{background:var(--surface); padding:13px 15px}
+.stat .v{font-size:23px; font-weight:640; letter-spacing:-.025em; line-height:1.15; margin-top:4px}
+.stat .d{font-size:11.5px; color:var(--muted); margin-top:3px}
+
+table.plain{width:100%; border-collapse:collapse; font-size:13px}
+table.plain th{
+  text-align:left; font-size:10.5px; font-weight:650; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--muted); padding:7px 9px;
+  border-bottom:1px solid var(--rule); white-space:nowrap;
+}
+table.plain td{padding:6px 9px; border-bottom:1px solid var(--grid); vertical-align:top}
+table.plain td.r,table.plain th.r{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+table.plain tr:last-child td{border-bottom:0}
+table.plain tbody tr:hover{background:var(--sel)}
+table.plain td.ind1{padding-left:26px}
+table.plain td.ind2{padding-left:44px}
+table.plain td.ind3{padding-left:62px}
+table.plain td.ind4{padding-left:80px}
+table.plain tr.tot td{font-weight:650; background:var(--paper)}
+table.plain tr.sub0 td:first-child{font-weight:600}
+.scrollx{overflow-x:auto}
+.scrollx::-webkit-scrollbar{height:9px}
+.scrollx::-webkit-scrollbar-thumb{background:var(--grid); border-radius:5px}
+
+/* badges */
+.bdg{
+  display:inline-block; font-size:10.5px; font-weight:650; letter-spacing:.04em;
+  padding:2px 7px; border-radius:20px; border:1px solid var(--hair);
+  color:var(--ink2); white-space:nowrap;
+}
+.bdg.ok{color:var(--good); border-color:color-mix(in srgb,var(--good) 35%,transparent); background:color-mix(in srgb,var(--good) 8%,transparent)}
+.bdg.no{color:var(--crit); border-color:color-mix(in srgb,var(--crit) 35%,transparent); background:color-mix(in srgb,var(--crit) 8%,transparent)}
+.bdg.wn{color:var(--ink2); border-color:color-mix(in srgb,var(--warn) 55%,transparent); background:color-mix(in srgb,var(--warn) 13%,transparent)}
+
+/* ============================================================
+   Charts
+   ============================================================ */
+.chart{position:relative}
+.chart svg{display:block; width:100%; overflow:visible}
+.gridline{stroke:var(--grid); stroke-width:1}
+.axisline{stroke:var(--rule); stroke-width:1}
+.tick{fill:var(--muted); font-size:10.5px; font-variant-numeric:tabular-nums}
+.dlabel{fill:var(--ink2); font-size:10.5px; font-weight:600; font-variant-numeric:tabular-nums}
+.legend{display:flex; gap:14px; flex-wrap:wrap; margin:0 0 10px; font-size:12px; color:var(--ink2)}
+.legend i{width:9px; height:9px; border-radius:2px; display:inline-block; margin-right:5px; vertical-align:-1px}
+.hitarea{fill:transparent; cursor:pointer}
+.crosshair{stroke:var(--rule); stroke-width:1; pointer-events:none}
+.tip{
+  position:absolute; pointer-events:none; z-index:30; opacity:0;
+  background:var(--raise); border:1px solid var(--hair); border-radius:8px;
+  padding:8px 10px; font-size:12px; min-width:132px;
+  box-shadow:0 6px 20px rgba(0,0,0,.13); transition:opacity .1s;
+}
+.tip .ty{font-weight:650; margin-bottom:5px; font-size:11.5px}
+.tip .tr{display:flex; justify-content:space-between; gap:14px; padding:1.5px 0}
+.tip .tr b{font-variant-numeric:tabular-nums; font-weight:600}
+.viewtog{display:inline-flex; border:1px solid var(--hair); border-radius:7px; overflow:hidden}
+.viewtog button{background:var(--surface); border:0; cursor:pointer; padding:4px 9px; font-size:11.5px; color:var(--ink2); font-weight:550}
+.viewtog button[aria-pressed="true"]{background:var(--accent-soft); color:var(--accent); font-weight:650}
+.cardhead{display:flex; align-items:flex-start; gap:12px; margin-bottom:11px}
+.cardhead .grow{flex:1; min-width:0}
+
+/* ============================================================
+   Organisation profile
+   ============================================================ */
+.back{
+  background:none; border:0; cursor:pointer; color:var(--ink2);
+  font-size:12.5px; padding:14px 0 10px; display:inline-flex; align-items:center; gap:6px;
+}
+.back:hover{color:var(--accent)}
+.ohead{padding-bottom:17px; border-bottom:1px solid var(--hair)}
+.ohead h1{font-size:25px; line-height:1.2; max-width:40ch; letter-spacing:-.02em}
+.ohead .meta{display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-top:10px}
+.ohead .alt{margin-top:7px; font-size:12.5px; color:var(--muted); max-width:70ch}
+.ocols{display:grid; grid-template-columns:minmax(0,1fr) 316px; gap:24px; padding-top:20px; align-items:start}
+@media (max-width:1040px){ .ocols{grid-template-columns:minmax(0,1fr)} }
+/* grid items default to min-width:auto and refuse to shrink below their
+   content, which pushes wide tables past the viewport instead of scrolling */
+.ocols > *, .explore > *, .grid > *, .stats > *{min-width:0}
+dl.kv{margin:0; font-size:13px}
+dl.kv > div{display:flex; gap:10px; padding:5px 0; border-bottom:1px solid var(--grid)}
+dl.kv > div:last-child{border-bottom:0}
+dl.kv dt{flex:0 0 108px; color:var(--muted); font-size:11.5px; padding-top:1px}
+dl.kv dd{margin:0; flex:1; min-width:0; overflow-wrap:anywhere}
+dl.kv dd.mono{font-family:var(--mono); font-size:12px}
+.purpose{font-size:13.5px; line-height:1.62; color:var(--ink2); white-space:pre-wrap; overflow-wrap:anywhere}
+.purpose.clamp{display:-webkit-box; -webkit-line-clamp:7; -webkit-box-orient:vertical; overflow:hidden}
+
+/* misc */
+.note{
+  font-size:12.5px; color:var(--ink2); background:var(--paper);
+  border:1px solid var(--hair); border-left:2px solid var(--accent);
+  border-radius:0 8px 8px 0; padding:10px 13px; line-height:1.55;
+}
+.note b{color:var(--ink)}
+.bars{display:grid; gap:7px}
+/* label | track | value — a fixed label column keeps every track aligned */
+.barrow{display:grid; grid-template-columns:minmax(0,170px) 1fr 82px; gap:11px; align-items:center; font-size:12.5px}
+.barrow .bn{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.barrow .btrack{height:9px; background:var(--grid); border-radius:4px; overflow:hidden; min-width:24px}
+.barrow .bfill{display:block; height:100%; border-radius:4px; background:var(--s1)}
+@media (max-width:640px){ .barrow{grid-template-columns:minmax(0,120px) 1fr 72px} }
+.barrow .bv{text-align:right; font-variant-numeric:tabular-nums; color:var(--ink2)}
+.barrow:hover .bn{color:var(--accent)}
+.clickable{cursor:pointer}
+.spin{display:inline-block; width:12px; height:12px; border:2px solid var(--grid); border-top-color:var(--accent); border-radius:50%; animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.skel{background:var(--grid); border-radius:4px; height:1em; animation:pl 1.2s ease-in-out infinite}
+@keyframes pl{50%{opacity:.5}}
+.foot{padding-top:34px; color:var(--muted); font-size:11.5px; line-height:1.7; max-width:84ch}
+.foot a{color:var(--ink2); text-decoration:underline}
+.cmp{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px}
+@media print{ .rail,header.top,.tbtn,.viewtog{display:none} body{background:#fff} }
+</style>
+</head>
+<body>
+<div id="boot">
+  <div class="bx">
+    <div class="brand" style="justify-content:center;margin-bottom:2px">
+      <i class="tick"></i><b>Méid</b>
+    </div>
+    <div class="lab" style="text-align:center">Cé mhéad?</div>
+    <div class="bar"><i id="bootbar"></i></div>
+    <small id="bootmsg">Loading register…</small>
+  </div>
+</div>
+<div id="app" hidden>
+  <header class="top">
+    <div class="topin">
+      <div class="brand"><i class="tick"></i><b>Méid</b><span>the public record of Irish nonprofits</span></div>
+      <nav class="views" id="nav"></nav>
+      <div class="topright">
+        <button class="iconbtn" id="themebtn" title="Switch theme" aria-label="Switch theme"></button>
+      </div>
+    </div>
+  </header>
+  <main id="main"></main>
+</div>

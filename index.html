@@ -1,0 +1,2240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Méid — the public record of Irish nonprofits</title>
+<style>
+/* ============================================================
+   Tokens. Dark values are selected for the dark surface, not
+   flipped; declared under both the OS query and the toggle.
+   ============================================================ */
+:root{
+  color-scheme: light;
+  --paper:#f4f3ee; --surface:#fcfcfb; --raise:#ffffff;
+  --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --rule:#c3c2b7; --hair:rgba(11,11,11,.10);
+  --accent:#1a5c3a; --accent-soft:#e6efe9; --accent-ink:#ffffff;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --good:#006300; --warn:#fab219; --crit:#d03b3b;
+  --sel:#eef2f8;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme: dark;
+    --paper:#0d0d0d; --surface:#1a1a19; --raise:#222221;
+    --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --rule:#383835; --hair:rgba(255,255,255,.10);
+    --accent:#4ab87a; --accent-soft:#17251d; --accent-ink:#0b0b0b;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+    --good:#0ca30c; --sel:#1d2630;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --paper:#0d0d0d; --surface:#1a1a19; --raise:#222221;
+  --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --rule:#383835; --hair:rgba(255,255,255,.10);
+  --accent:#4ab87a; --accent-soft:#17251d; --accent-ink:#0b0b0b;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --good:#0ca30c; --sel:#1d2630;
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper); color:var(--ink);
+  font:14px/1.5 var(--sans);
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent); text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit; color:inherit}
+h1,h2,h3{margin:0; font-weight:600; letter-spacing:-.01em}
+
+/* --- shared atoms --- */
+.lab{
+  font-size:10.5px; font-weight:650; letter-spacing:.09em;
+  text-transform:uppercase; color:var(--muted);
+}
+.num{font-variant-numeric:tabular-nums}
+.mut{color:var(--muted)}
+.ink2{color:var(--ink2)}
+.hr{height:1px; background:var(--hair); border:0; margin:0}
+
+/* ============================================================
+   App frame
+   ============================================================ */
+#app{min-height:100vh; display:flex; flex-direction:column}
+
+header.top{
+  position:sticky; top:0; z-index:40;
+  background:var(--paper); border-bottom:1px solid var(--hair);
+}
+.topin{
+  max-width:1560px; margin:0 auto; padding:0 20px;
+  display:flex; align-items:center; gap:22px; height:54px;
+}
+.brand{display:flex; align-items:baseline; gap:9px; flex:0 0 auto}
+.brand b{font-size:15.5px; font-weight:680; letter-spacing:-.015em}
+.brand .tick{
+  width:3px; height:17px; background:var(--accent);
+  border-radius:1px; align-self:center;
+}
+.brand span{font-size:11px; color:var(--muted); letter-spacing:.02em}
+
+nav.views{display:flex; gap:2px; margin-left:4px; min-width:0; overflow-x:auto; scrollbar-width:none}
+nav.views::-webkit-scrollbar{display:none}
+nav.views button{flex:0 0 auto}
+@media (max-width:760px){
+  .topin{gap:12px; padding:0 13px}
+  .brand span{display:none}
+  main{padding:0 13px 44px}
+}
+nav.views button{
+  background:none; border:0; cursor:pointer; padding:7px 11px;
+  border-radius:6px; color:var(--ink2); font-size:13px; font-weight:500;
+}
+nav.views button:hover{background:var(--hair); color:var(--ink)}
+nav.views button[aria-current="page"]{
+  background:var(--accent-soft); color:var(--accent); font-weight:600;
+}
+.topright{margin-left:auto; display:flex; align-items:center; gap:8px}
+.iconbtn{
+  background:none; border:1px solid var(--hair); cursor:pointer;
+  width:30px; height:30px; border-radius:7px; color:var(--ink2);
+  display:grid; place-items:center;
+}
+.iconbtn:hover{background:var(--hair); color:var(--ink)}
+
+main{flex:1; max-width:1560px; width:100%; margin:0 auto; padding:0 20px 56px}
+
+/* loading state */
+#boot{
+  position:fixed; inset:0; background:var(--paper); z-index:90;
+  display:grid; place-items:center; transition:opacity .25s;
+}
+#boot .bx{text-align:center; max-width:300px}
+#boot .bar{
+  height:2px; background:var(--grid); margin-top:18px; overflow:hidden;
+  border-radius:2px;
+}
+#boot .bar i{
+  display:block; height:100%; width:0%; background:var(--accent);
+  transition:width .3s ease;
+}
+#boot small{display:block; margin-top:9px; color:var(--muted); font-size:11.5px}
+
+/* ============================================================
+   Explore: facet rail + results
+   ============================================================ */
+.explore{display:grid; grid-template-columns:232px minmax(0,1fr); gap:24px; padding-top:18px}
+@media (max-width:1000px){ .explore{grid-template-columns:1fr} .rail{order:2} }
+
+.rail{position:sticky; top:72px; align-self:start; max-height:calc(100vh - 96px); overflow-y:auto; padding-right:4px}
+.rail::-webkit-scrollbar{width:8px}
+.rail::-webkit-scrollbar-thumb{background:var(--grid); border-radius:4px}
+.fgroup{margin-bottom:19px}
+.fgroup > .lab{display:block; margin-bottom:7px}
+.chk{
+  display:flex; align-items:center; gap:7px; padding:3px 0;
+  cursor:pointer; font-size:12.5px; color:var(--ink2);
+}
+.chk:hover{color:var(--ink)}
+.chk input{accent-color:var(--accent); margin:0; width:13px; height:13px; flex:0 0 auto}
+.chk .cnt{margin-left:auto; font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums}
+.chk.on{color:var(--ink); font-weight:550}
+.more{
+  background:none; border:0; padding:3px 0; cursor:pointer;
+  color:var(--accent); font-size:11.5px; font-weight:600;
+}
+
+.qbuild{
+  background:var(--surface); border:1px solid var(--hair);
+  border-radius:9px; padding:11px; margin-bottom:19px;
+}
+.qrow{display:flex; gap:5px; margin-bottom:6px}
+.qbuild select,.qbuild input{
+  background:var(--paper); border:1px solid var(--hair); color:var(--ink);
+  border-radius:6px; padding:5px 6px; font:12px var(--sans); min-width:0; flex:1;
+}
+.qbuild input{font-variant-numeric:tabular-nums}
+
+/* search + toolbar */
+.searchwrap{position:relative; margin-bottom:12px}
+.searchwrap svg{position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted)}
+#q{
+  width:100%; padding:11px 13px 11px 36px; font:15px var(--sans);
+  background:var(--surface); color:var(--ink);
+  border:1px solid var(--hair); border-radius:10px;
+}
+#q:focus{outline:2px solid var(--accent); outline-offset:-1px; border-color:transparent}
+#q::placeholder{color:var(--muted)}
+
+.toolbar{
+  display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  padding-bottom:10px; margin-bottom:2px;
+}
+.resn{font-size:13px; color:var(--ink2)}
+.resn b{color:var(--ink); font-variant-numeric:tabular-nums; font-weight:650}
+.tbtn{
+  background:var(--surface); border:1px solid var(--hair); cursor:pointer;
+  padding:5px 10px; border-radius:7px; font-size:12px; color:var(--ink2);
+  font-weight:550; display:inline-flex; align-items:center; gap:5px;
+}
+.tbtn:hover{border-color:var(--rule); color:var(--ink)}
+.pills{display:flex; gap:5px; flex-wrap:wrap}
+.pill{
+  display:inline-flex; align-items:center; gap:5px; font-size:11.5px;
+  background:var(--accent-soft); color:var(--accent); font-weight:600;
+  padding:3px 5px 3px 8px; border-radius:20px;
+}
+.pill button{background:none; border:0; cursor:pointer; color:inherit; opacity:.65; padding:0 2px; font-size:13px; line-height:1}
+.pill button:hover{opacity:1}
+
+/* ============================================================
+   Data table (windowed)
+   ============================================================ */
+.tblwrap{
+  background:var(--surface); border:1px solid var(--hair);
+  border-radius:10px; overflow:hidden;
+}
+/* Sits directly above #scroller, which scrolls on its own — no stickiness.
+   (Sticky here would offset against .tblwrap's own overflow scrollport.) */
+.thead{
+  display:flex; align-items:stretch; border-bottom:1px solid var(--hair);
+  background:var(--surface); z-index:12;
+}
+.thead div{
+  padding:9px 10px; font-size:10.5px; font-weight:650; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--muted); cursor:pointer;
+  user-select:none; display:flex; align-items:center; gap:4px;
+  white-space:nowrap; overflow:hidden;
+}
+.thead div:hover{color:var(--ink)}
+.thead div.srt{color:var(--accent)}
+.thead div.r{justify-content:flex-end}
+#scroller{height:min(68vh,760px); overflow-y:auto; overflow-x:hidden; position:relative}
+#scroller::-webkit-scrollbar{width:10px}
+#scroller::-webkit-scrollbar-thumb{background:var(--grid); border-radius:5px}
+#spacer{position:relative; width:100%}
+.row{
+  display:flex; align-items:center; position:absolute; left:0; right:0;
+  height:34px; border-bottom:1px solid var(--grid); cursor:pointer;
+}
+.row:hover{background:var(--sel)}
+.row > div{padding:0 10px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:13px}
+.row > div.r{text-align:right; font-variant-numeric:tabular-nums}
+.row .nm{font-weight:520}
+.row .sub{font-size:11px; color:var(--muted)}
+.dot{
+  display:inline-block; width:6px; height:6px; border-radius:50%;
+  margin-right:6px; vertical-align:1px; flex:0 0 auto;
+}
+.empty{padding:52px 20px; text-align:center; color:var(--muted)}
+
+/* ============================================================
+   Cards, stats, sections
+   ============================================================ */
+.card{
+  background:var(--surface); border:1px solid var(--hair);
+  border-radius:10px; padding:16px 18px;
+}
+.card > h3{font-size:13.5px; margin-bottom:3px}
+.card > .lab{display:block; margin-bottom:11px}
+.grid{display:grid; gap:14px}
+.sect{padding-top:26px}
+.sect > h2{font-size:17px; margin-bottom:3px}
+.sect > p.sub{margin:0 0 15px; color:var(--ink2); font-size:13px; max-width:66ch}
+
+.stats{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:1px; background:var(--hair); border:1px solid var(--hair); border-radius:10px; overflow:hidden}
+.stat{background:var(--surface); padding:13px 15px}
+.stat .v{font-size:23px; font-weight:640; letter-spacing:-.025em; line-height:1.15; margin-top:4px}
+.stat .d{font-size:11.5px; color:var(--muted); margin-top:3px}
+
+table.plain{width:100%; border-collapse:collapse; font-size:13px}
+table.plain th{
+  text-align:left; font-size:10.5px; font-weight:650; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--muted); padding:7px 9px;
+  border-bottom:1px solid var(--rule); white-space:nowrap;
+}
+table.plain td{padding:6px 9px; border-bottom:1px solid var(--grid); vertical-align:top}
+table.plain td.r,table.plain th.r{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
+table.plain tr:last-child td{border-bottom:0}
+table.plain tbody tr:hover{background:var(--sel)}
+table.plain td.ind1{padding-left:26px}
+table.plain td.ind2{padding-left:44px}
+table.plain td.ind3{padding-left:62px}
+table.plain td.ind4{padding-left:80px}
+table.plain tr.tot td{font-weight:650; background:var(--paper)}
+table.plain tr.sub0 td:first-child{font-weight:600}
+.scrollx{overflow-x:auto}
+.scrollx::-webkit-scrollbar{height:9px}
+.scrollx::-webkit-scrollbar-thumb{background:var(--grid); border-radius:5px}
+
+/* badges */
+.bdg{
+  display:inline-block; font-size:10.5px; font-weight:650; letter-spacing:.04em;
+  padding:2px 7px; border-radius:20px; border:1px solid var(--hair);
+  color:var(--ink2); white-space:nowrap;
+}
+.bdg.ok{color:var(--good); border-color:color-mix(in srgb,var(--good) 35%,transparent); background:color-mix(in srgb,var(--good) 8%,transparent)}
+.bdg.no{color:var(--crit); border-color:color-mix(in srgb,var(--crit) 35%,transparent); background:color-mix(in srgb,var(--crit) 8%,transparent)}
+.bdg.wn{color:var(--ink2); border-color:color-mix(in srgb,var(--warn) 55%,transparent); background:color-mix(in srgb,var(--warn) 13%,transparent)}
+
+/* ============================================================
+   Charts
+   ============================================================ */
+.chart{position:relative}
+.chart svg{display:block; width:100%; overflow:visible}
+.gridline{stroke:var(--grid); stroke-width:1}
+.axisline{stroke:var(--rule); stroke-width:1}
+.tick{fill:var(--muted); font-size:10.5px; font-variant-numeric:tabular-nums}
+.dlabel{fill:var(--ink2); font-size:10.5px; font-weight:600; font-variant-numeric:tabular-nums}
+.legend{display:flex; gap:14px; flex-wrap:wrap; margin:0 0 10px; font-size:12px; color:var(--ink2)}
+.legend i{width:9px; height:9px; border-radius:2px; display:inline-block; margin-right:5px; vertical-align:-1px}
+.hitarea{fill:transparent; cursor:pointer}
+.crosshair{stroke:var(--rule); stroke-width:1; pointer-events:none}
+.tip{
+  position:absolute; pointer-events:none; z-index:30; opacity:0;
+  background:var(--raise); border:1px solid var(--hair); border-radius:8px;
+  padding:8px 10px; font-size:12px; min-width:132px;
+  box-shadow:0 6px 20px rgba(0,0,0,.13); transition:opacity .1s;
+}
+.tip .ty{font-weight:650; margin-bottom:5px; font-size:11.5px}
+.tip .tr{display:flex; justify-content:space-between; gap:14px; padding:1.5px 0}
+.tip .tr b{font-variant-numeric:tabular-nums; font-weight:600}
+.viewtog{display:inline-flex; border:1px solid var(--hair); border-radius:7px; overflow:hidden}
+.viewtog button{background:var(--surface); border:0; cursor:pointer; padding:4px 9px; font-size:11.5px; color:var(--ink2); font-weight:550}
+.viewtog button[aria-pressed="true"]{background:var(--accent-soft); color:var(--accent); font-weight:650}
+.cardhead{display:flex; align-items:flex-start; gap:12px; margin-bottom:11px}
+.cardhead .grow{flex:1; min-width:0}
+
+/* ============================================================
+   Organisation profile
+   ============================================================ */
+.back{
+  background:none; border:0; cursor:pointer; color:var(--ink2);
+  font-size:12.5px; padding:14px 0 10px; display:inline-flex; align-items:center; gap:6px;
+}
+.back:hover{color:var(--accent)}
+.ohead{padding-bottom:17px; border-bottom:1px solid var(--hair)}
+.ohead h1{font-size:25px; line-height:1.2; max-width:40ch; letter-spacing:-.02em}
+.ohead .meta{display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-top:10px}
+.ohead .alt{margin-top:7px; font-size:12.5px; color:var(--muted); max-width:70ch}
+.ocols{display:grid; grid-template-columns:minmax(0,1fr) 316px; gap:24px; padding-top:20px; align-items:start}
+@media (max-width:1040px){ .ocols{grid-template-columns:minmax(0,1fr)} }
+/* grid items default to min-width:auto and refuse to shrink below their
+   content, which pushes wide tables past the viewport instead of scrolling */
+.ocols > *, .explore > *, .grid > *, .stats > *{min-width:0}
+dl.kv{margin:0; font-size:13px}
+dl.kv > div{display:flex; gap:10px; padding:5px 0; border-bottom:1px solid var(--grid)}
+dl.kv > div:last-child{border-bottom:0}
+dl.kv dt{flex:0 0 108px; color:var(--muted); font-size:11.5px; padding-top:1px}
+dl.kv dd{margin:0; flex:1; min-width:0; overflow-wrap:anywhere}
+dl.kv dd.mono{font-family:var(--mono); font-size:12px}
+.purpose{font-size:13.5px; line-height:1.62; color:var(--ink2); white-space:pre-wrap; overflow-wrap:anywhere}
+.purpose.clamp{display:-webkit-box; -webkit-line-clamp:7; -webkit-box-orient:vertical; overflow:hidden}
+
+/* misc */
+.note{
+  font-size:12.5px; color:var(--ink2); background:var(--paper);
+  border:1px solid var(--hair); border-left:2px solid var(--accent);
+  border-radius:0 8px 8px 0; padding:10px 13px; line-height:1.55;
+}
+.note b{color:var(--ink)}
+.bars{display:grid; gap:7px}
+/* label | track | value — a fixed label column keeps every track aligned */
+.barrow{display:grid; grid-template-columns:minmax(0,170px) 1fr 82px; gap:11px; align-items:center; font-size:12.5px}
+.barrow .bn{overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.barrow .btrack{height:9px; background:var(--grid); border-radius:4px; overflow:hidden; min-width:24px}
+.barrow .bfill{display:block; height:100%; border-radius:4px; background:var(--s1)}
+@media (max-width:640px){ .barrow{grid-template-columns:minmax(0,120px) 1fr 72px} }
+.barrow .bv{text-align:right; font-variant-numeric:tabular-nums; color:var(--ink2)}
+.barrow:hover .bn{color:var(--accent)}
+.clickable{cursor:pointer}
+.spin{display:inline-block; width:12px; height:12px; border:2px solid var(--grid); border-top-color:var(--accent); border-radius:50%; animation:sp .7s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.skel{background:var(--grid); border-radius:4px; height:1em; animation:pl 1.2s ease-in-out infinite}
+@keyframes pl{50%{opacity:.5}}
+.foot{padding-top:34px; color:var(--muted); font-size:11.5px; line-height:1.7; max-width:84ch}
+.foot a{color:var(--ink2); text-decoration:underline}
+.cmp{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:14px}
+@media print{ .rail,header.top,.tbtn,.viewtog{display:none} body{background:#fff} }
+</style>
+</head>
+<body>
+<div id="boot">
+  <div class="bx">
+    <div class="brand" style="justify-content:center;margin-bottom:2px">
+      <i class="tick"></i><b>Méid</b>
+    </div>
+    <div class="lab" style="text-align:center">Cé mhéad?</div>
+    <div class="bar"><i id="bootbar"></i></div>
+    <small id="bootmsg">Loading register…</small>
+  </div>
+</div>
+<div id="app" hidden>
+  <header class="top">
+    <div class="topin">
+      <div class="brand"><i class="tick"></i><b>Méid</b><span>the public record of Irish nonprofits</span></div>
+      <nav class="views" id="nav"></nav>
+      <div class="topright">
+        <button class="iconbtn" id="themebtn" title="Switch theme" aria-label="Switch theme"></button>
+      </div>
+    </div>
+  </header>
+  <main id="main"></main>
+</div>
+<script>
+/* ================================================================
+   Benefacts 2 — front end over the archived Benefacts open data.
+
+   Data layer. Files are published gzipped; some hosts set
+   Content-Encoding and the browser inflates for us, so the loader
+   accepts either plain JSON or gzip bytes.
+   ================================================================ */
+'use strict';
+
+const DB = {
+  meta:null, stats:null,
+  core:null,            // column arrays, all organisations
+  ext:null,             // sparse identifier / address columns
+  fin:null,             // one row per organisation-year
+  byId:new Map(),       // benefacts id -> row index
+  finByOrg:null,        // row index -> array of fin row positions
+  years:[],             // financial years present, ascending
+  funding:null,         // state funding 2020
+  detail:new Map(),     // bucket -> parsed json
+  gov:new Map(),
+  ready:false, extReady:false, finReady:false
+};
+
+async function grab(path){
+  const r = await fetch(path);
+  if(!r.ok) throw new Error(path+' → HTTP '+r.status);
+  const buf = await r.arrayBuffer();
+  // Payloads are gzip stored under a .json name. Depending on whether the
+  // host sets Content-Encoding, the browser may already have inflated them,
+  // so sniff the gzip magic bytes rather than assuming either way.
+  const head = new Uint8Array(buf, 0, Math.min(2, buf.byteLength));
+  if(!(head[0]===0x1f && head[1]===0x8b)) return JSON.parse(new TextDecoder().decode(buf));
+  if(typeof DecompressionStream === 'undefined')
+    throw new Error('This browser cannot read the compressed data files.');
+  const stream = new Response(buf).body.pipeThrough(new DecompressionStream('gzip'));
+  return JSON.parse(await new Response(stream).text());
+}
+
+/* ---------------- formatting ---------------- */
+const NF = new Intl.NumberFormat('en-IE');
+function eur(v){
+  if(v===null||v===undefined) return '—';
+  const n = Math.round(v);
+  return (n<0?'−':'') + '€' + NF.format(Math.abs(n));
+}
+function eurShort(v){
+  if(v===null||v===undefined) return '—';
+  const a = Math.abs(v), s = v<0?'−':'';
+  if(a>=1e9) return s+'€'+(a/1e9).toFixed(a>=1e10?0:1)+'bn';
+  if(a>=1e6) return s+'€'+(a/1e6).toFixed(a>=1e7?0:1)+'m';
+  if(a>=1e3) return s+'€'+Math.round(a/1e3)+'k';
+  return s+'€'+NF.format(Math.round(a));
+}
+function int(v){ return (v===null||v===undefined) ? '—' : NF.format(Math.round(v)); }
+function esc(s){
+  return String(s===null||s===undefined?'':s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+/* Registered names arrive fully upper-cased; title-case for reading but
+   keep known acronyms and small words sensible. */
+const KEEP = new Set(['CLG','DAC','HSE','IRFU','GAA','FAI','RTE','RTÉ','UCD','UCC','NUI','DIT','TU','IT','CLÉ','CIE','ESB','VEC','ETB','HSA','NGO','UK','EU','USA','CHY','CRO','RCN','YMCA','YWCA','ICA','IFA','SVP','DSPCA','ISPCC','ISPCA','NCBI','MABS','FRC','CDP','SCP','LGBT','LGBTQ','AIDS','HIV','CBS','NS','GPO','OPW','RDS','AA','AIB','BOI','IDA','ICTU','SIPTU','IMPACT','INTO','TUI','ASTI','HEA','QQI','SOLAS','IPA','RIA','IHREC','NTMA','HIQA','PSI','RCSI','RCPI','TCD','DCU','MU','UL','ATU','MTU','SETU','DKIT','IADT','NCAD','NCI','GMIT','LYIT','CIT','WIT','AIT','LIT','IOT','VHI','BUPA','SSE','ESRI','CSO','NESC','NDA','NCCA','NEWB','TESS','CAMHS','CHO','LCDC','LEO','LDC','LAG','PPN','NYCI','NFTE','IWA','MS','CF','MND','ME','CFS','POMS','PRSI','PAYE','VAT','R&D','UNICEF','UNHCR','WHO','OECD','ILO','ICRC','MSF','GOAL','GORTA','TROCAIRE','TRÓCAIRE'].map(x=>x.toUpperCase()));
+const LOWER = new Set(['of','the','and','for','in','to','a','an','at','by','on','or','as','with','de','le','la','na','agus','an','is']);
+function titleise(s){
+  if(!s) return '';
+  if(!/[A-Z]/.test(s) || /[a-z]/.test(s)) return s;   // already mixed case
+  return s.toLowerCase().split(/(\s+|[()\/,.\-])/).map((w,i)=>{
+    if(!w.trim()) return w;
+    const up = w.toUpperCase();
+    if(KEEP.has(up)) return up;
+    if(i>0 && LOWER.has(w)) return w;
+    if(/^[ivxlc]+$/.test(w) && w.length>1) return up;         // roman numerals
+    if(/^\d/.test(w)) return w;
+    return w.charAt(0).toUpperCase()+w.slice(1);
+  }).join('');
+}
+
+/* ---------------- accessors ---------------- */
+const C = () => DB.core.cols;
+const E = () => DB.ext && DB.ext.cols;
+function orgName(k){ return titleise(C().name[k]); }
+function rawName(k){ return C().name[k]; }
+function extVal(key,k){
+  const e = E(); if(!e) return '';
+  const v = e[key] && e[key][k];
+  return (v===undefined||v===null) ? '' : v;
+}
+function sectorOf(k){ const i=C().sec[k]; return i<0?null:DB.meta.sectors[i]; }
+function subsectorOf(k){ const i=C().sub[k]; return i<0?null:DB.meta.subsectors[i]; }
+function countyOf(k){ const i=C().cty[k]; return i<0?null:DB.meta.counties[i]; }
+function gformOf(k){ const i=C().gf[k]; return i<0?null:DB.meta.govForms[i]; }
+
+/* register bitmask */
+const R_LEGACY=1, R_2022=2, R_2023=4, R_ACC=8, R_GOV=16, R_FUND=32;
+const inReg = (k,bit) => (C().reg[k] & bit) !== 0;
+const isCurrent = k => inReg(k,R_2023);
+const isDissolved = k => !inReg(k,R_2023) && (C().reg[k] & (R_LEGACY|R_2022)) !== 0;
+const noDirectory = k => (C().reg[k] & (R_LEGACY|R_2022|R_2023)) === 0;
+
+/* Twelve sectors exceed what colour can carry as identity, and a
+   sequential ramp encodes magnitude, not category. Sectors are named in
+   text everywhere; colour is reserved for emphasis (what you selected). */
+
+/* ---------------- financial index ---------------- */
+function buildFinIndex(){
+  const f = DB.fin.cols, n = DB.fin.n;
+  const idx = new Map(); const ys = new Set();
+  for(let r=0;r<n;r++){
+    const k = f.oi[r];
+    let a = idx.get(k); if(!a){ a=[]; idx.set(k,a); }
+    a.push(r);
+    ys.add(f.yr[r]);
+  }
+  // each organisation's years ascending
+  for(const a of idx.values()) a.sort((x,y)=>f.yr[x]-f.yr[y]);
+  DB.finByOrg = idx;
+  DB.years = [...ys].sort((a,b)=>a-b);
+}
+/** Headline measure for one organisation in one year ('latest' allowed).
+    `year` may arrive as a string from a <select>; financial years are
+    numbers, so coerce before comparing. */
+function finVal(k, measure, year){
+  const rows = DB.finByOrg && DB.finByOrg.get(k);
+  if(!rows) return null;
+  const f = DB.fin.cols;
+  if(year==='latest'){
+    for(let i=rows.length-1;i>=0;i--){ const v=f[measure][rows[i]]; if(v!==null) return v; }
+    return null;
+  }
+  const y = Number(year);
+  for(const r of rows) if(f.yr[r]===y){ const v=f[measure][r]; if(v!==null) return v; }
+  return null;
+}
+function finYears(k){
+  const rows = DB.finByOrg && DB.finByOrg.get(k);
+  return rows ? rows.map(r=>DB.fin.cols.yr[r]) : [];
+}
+
+/* lazily fetched per-organisation buckets */
+async function loadDetail(id){
+  const b = id.slice(-2).padStart(2,'0');
+  if(!DB.detail.has(b)) DB.detail.set(b, grab('data/detail/'+b+'.json').catch(()=>({})));
+  const d = await DB.detail.get(b);
+  return d[id] || null;
+}
+async function loadGov(id){
+  const b = id.slice(-2).padStart(2,'0');
+  if(!DB.gov.has(b)) DB.gov.set(b, grab('data/gov/'+b+'.json').catch(()=>({})));
+  const d = await DB.gov.get(b);
+  return d[id] || null;
+}
+
+/* ---------------- boot ---------------- */
+async function boot(){
+  const bar = document.getElementById('bootbar'), msg = document.getElementById('bootmsg');
+  const step = (p,t)=>{ bar.style.width=p+'%'; if(t) msg.textContent=t; };
+  try{
+    step(12,'Loading register…');
+    const [meta,stats,core] = await Promise.all([
+      grab('data/meta.json'), grab('data/stats.json'), grab('data/orgs-core.json')
+    ]);
+    DB.meta=meta; DB.stats=stats; DB.core=core;
+    for(let k=0;k<core.n;k++) DB.byId.set(core.cols.id[k], k);
+    step(74,'Preparing views…');
+    DB.ready = true;
+
+    document.getElementById('boot').style.opacity='0';
+    setTimeout(()=>document.getElementById('boot').remove(),260);
+    document.getElementById('app').hidden=false;
+    initChrome(); route();
+
+    // background: everything the first screen does not need
+    grab('data/fin.json').then(f=>{
+      DB.fin=f; buildFinIndex(); DB.finReady=true; onDataArrived('fin');
+    }).catch(e=>console.warn('fin',e));
+    grab('data/orgs-ext.json').then(x=>{
+      DB.ext=x; DB.extReady=true; onDataArrived('ext');
+    }).catch(e=>console.warn('ext',e));
+    grab('data/funding2020.json').then(x=>{
+      DB.funding=x; onDataArrived('funding');
+    }).catch(e=>console.warn('funding',e));
+  }catch(err){
+    document.getElementById('boot').innerHTML =
+      '<div class="bx"><h3 style="margin-bottom:8px">Could not load the data</h3>'+
+      '<p style="color:var(--ink2);font-size:13px">'+esc(err.message)+'</p></div>';
+  }
+}
+</script>
+<script>
+/* ================================================================
+   Chart primitives — hand-rolled SVG.
+   Thin marks, hairline grid, 2px surface gaps between fills,
+   selective direct labels, hover tooltip on every plot, and a
+   table twin for each chart (the relief rule: slot 3 sits below
+   3:1 on the light surface, so values are always readable as text).
+   ================================================================ */
+'use strict';
+
+let TIPN = 0;
+function tipFor(host){
+  let t = host.querySelector('.tip');
+  if(!t){ t=document.createElement('div'); t.className='tip'; host.appendChild(t); }
+  return t;
+}
+function showTip(host,t,x,y,html){
+  t.innerHTML=html; t.style.opacity='1';
+  const hw=host.clientWidth, tw=t.offsetWidth, th=t.offsetHeight;
+  let L=x+13; if(L+tw>hw-4) L=x-tw-13; if(L<4) L=4;
+  let T=y-th-11; if(T<2) T=y+15;
+  t.style.left=L+'px'; t.style.top=T+'px';
+}
+const hideTip = t => { t.style.opacity='0'; };
+
+function niceMax(v){
+  if(v<=0) return 1;
+  const e = Math.pow(10, Math.floor(Math.log10(v)));
+  const m = v/e;
+  return (m<=1?1:m<=2?2:m<=2.5?2.5:m<=5?5:10)*e;
+}
+function axisTicks(max,n){
+  const step = niceMax(max)/n, out=[];
+  for(let i=0;i<=n;i++) out.push(step*i);
+  return out;
+}
+
+/* ----------------------------------------------------------------
+   Grouped vertical bars over a shared y-axis.
+   series: [{key,label,colour,values:[]}]  cats: [labels]
+   ---------------------------------------------------------------- */
+function groupedBars(host, cats, series, opts){
+  opts = opts||{};
+  const fmt = opts.fmt || eurShort, fmtFull = opts.fmtFull || eur;
+  const W = Math.max(host.clientWidth||680, 300);
+  const padL = opts.padL||52, padR = 14, padT = 12, plotH = opts.plotH||186, axisH = 26;
+  const H = padT+plotH+axisH;
+  const innerW = W-padL-padR;
+
+  let max = 0;
+  for(const s of series) for(const v of s.values) if(v!=null) max = Math.max(max, Math.abs(v));
+  const top = niceMax(max||1);
+  const y = v => padT+plotH-(Math.abs(v||0)/top)*plotH;
+  const ticks = axisTicks(top,4);
+
+  const bandW = innerW/Math.max(cats.length,1);
+  const GAP = 2;                                  // surface gap between fills
+  const groupW = Math.min(bandW*0.68, 54);
+  const barW = Math.max((groupW-(series.length-1)*GAP)/series.length, 3);
+
+  let g = '';
+  // grid + y ticks
+  for(const t of ticks){
+    const yy = y(t);
+    g += `<line class="gridline" x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}"/>`;
+    g += `<text class="tick" x="${padL-7}" y="${yy+3.5}" text-anchor="end">${esc(fmt(t))}</text>`;
+  }
+  g += `<line class="axisline" x1="${padL}" y1="${padT+plotH}" x2="${W-padR}" y2="${padT+plotH}"/>`;
+
+  cats.forEach((c,ci)=>{
+    const cx = padL+bandW*ci+bandW/2;
+    const x0 = cx-groupW/2;
+    series.forEach((s,si)=>{
+      const v = s.values[ci];
+      if(v==null) return;
+      const bx = x0+si*(barW+GAP);
+      const bh = Math.max(padT+plotH-y(v), 0);
+      // 4px rounded data-end, anchored to the baseline
+      const r = Math.min(4, barW/2, bh);
+      const b = padT+plotH;
+      g += `<path d="M${bx} ${b} L${bx} ${b-bh+r} Q${bx} ${b-bh} ${bx+r} ${b-bh} L${bx+barW-r} ${b-bh} Q${bx+barW} ${b-bh} ${bx+barW} ${b-bh+r} L${bx+barW} ${b} Z" fill="${s.colour}"/>`;
+    });
+    g += `<text class="tick" x="${cx}" y="${padT+plotH+16}" text-anchor="middle">${esc(c)}</text>`;
+    // hover band
+    g += `<rect class="hitarea" x="${padL+bandW*ci}" y="${padT}" width="${bandW}" height="${plotH}" data-ci="${ci}"/>`;
+  });
+
+  // direct-label the final category of each series (selective, not every point)
+  if(opts.labelLast !== false && cats.length){
+    const ci = cats.length-1, cx = padL+bandW*ci+bandW/2;
+    series.forEach((s,si)=>{
+      const v = s.values[ci]; if(v==null) return;
+      const bx = v!=null ? (cx-groupW/2)+si*(barW+GAP)+barW/2 : cx;
+      g += `<text class="dlabel" x="${bx}" y="${y(v)-6}" text-anchor="middle">${esc(fmt(v))}</text>`;
+    });
+  }
+
+  host.innerHTML =
+    (series.length>1 ? `<div class="legend">`+series.map(s=>
+      `<span><i style="background:${s.colour}"></i>${esc(s.label)}</span>`).join('')+`</div>` : '')+
+    `<div class="chart"><svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${esc(opts.aria||'Chart')}">${g}</svg></div>`;
+
+  const chart = host.querySelector('.chart');
+  const tip = tipFor(chart);
+  chart.querySelectorAll('.hitarea').forEach(h=>{
+    h.addEventListener('mouseenter',ev=>{
+      const ci = +h.dataset.ci;
+      const rows = series.map(s=>s.values[ci]==null?'':
+        `<div class="tr"><span>${esc(s.label)}</span><b>${esc(fmtFull(s.values[ci]))}</b></div>`).join('');
+      const r = chart.getBoundingClientRect(), hb = h.getBoundingClientRect();
+      showTip(chart,tip,hb.left-r.left+hb.width/2,hb.top-r.top+20,
+        `<div class="ty">${esc(cats[ci])}</div>${rows||'<div class="tr mut">No data</div>'}`);
+    });
+    h.addEventListener('mouseleave',()=>hideTip(tip));
+  });
+}
+
+/* ----------------------------------------------------------------
+   Multi-series line with crosshair.
+   ---------------------------------------------------------------- */
+function lineChart(host, cats, series, opts){
+  opts = opts||{};
+  const fmt = opts.fmt||eurShort, fmtFull = opts.fmtFull||eur;
+  const W = Math.max(host.clientWidth||680, 300);
+  const padL = opts.padL||54, padR = 18, padT = 12, plotH = opts.plotH||196, axisH = 26;
+  const H = padT+plotH+axisH, innerW = W-padL-padR;
+
+  let max=0, min=0;
+  for(const s of series) for(const v of s.values) if(v!=null){ max=Math.max(max,v); min=Math.min(min,v); }
+  const top = niceMax(max||1);
+  const y = v => padT+plotH-((v||0)/top)*plotH;
+  const x = i => cats.length<2 ? padL+innerW/2 : padL+(innerW*i)/(cats.length-1);
+  const ticks = axisTicks(top,4);
+
+  let g='';
+  for(const t of ticks){
+    const yy=y(t);
+    g += `<line class="gridline" x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}"/>`;
+    g += `<text class="tick" x="${padL-7}" y="${yy+3.5}" text-anchor="end">${esc(fmt(t))}</text>`;
+  }
+  g += `<line class="axisline" x1="${padL}" y1="${padT+plotH}" x2="${W-padR}" y2="${padT+plotH}"/>`;
+  cats.forEach((c,i)=> g += `<text class="tick" x="${x(i)}" y="${padT+plotH+16}" text-anchor="middle">${esc(c)}</text>`);
+
+  for(const s of series){
+    // break the path across gaps rather than bridging missing years
+    let d='', open=false;
+    s.values.forEach((v,i)=>{
+      if(v==null){ open=false; return; }
+      d += (open?' L':' M')+x(i)+' '+y(v); open=true;
+    });
+    g += `<path d="${d.trim()}" fill="none" stroke="${s.colour}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+    s.values.forEach((v,i)=>{
+      if(v==null) return;
+      // 2px surface ring keeps overlapping markers legible
+      g += `<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="${s.colour}" stroke="var(--surface)" stroke-width="2"/>`;
+    });
+    // direct-label the last point
+    for(let i=s.values.length-1;i>=0;i--){
+      if(s.values[i]!=null){
+        g += `<text class="dlabel" x="${x(i)+8}" y="${y(s.values[i])+3.5}" fill="${s.colour}">${esc(fmt(s.values[i]))}</text>`;
+        break;
+      }
+    }
+  }
+  cats.forEach((c,i)=>{
+    const bw = cats.length<2?innerW:innerW/(cats.length-1);
+    g += `<rect class="hitarea" x="${x(i)-bw/2}" y="${padT}" width="${bw}" height="${plotH}" data-i="${i}"/>`;
+  });
+  g += `<line class="crosshair" id="chx" x1="0" y1="${padT}" x2="0" y2="${padT+plotH}" style="opacity:0"/>`;
+
+  host.innerHTML =
+    (series.length>1 ? `<div class="legend">`+series.map(s=>
+      `<span><i style="background:${s.colour}"></i>${esc(s.label)}</span>`).join('')+`</div>` : '')+
+    `<div class="chart"><svg viewBox="0 0 ${W} ${H}" height="${H}" role="img" aria-label="${esc(opts.aria||'Chart')}">${g}</svg></div>`;
+
+  const chart = host.querySelector('.chart'), tip = tipFor(chart);
+  const cross = chart.querySelector('#chx');
+  chart.querySelectorAll('.hitarea').forEach(h=>{
+    h.addEventListener('mouseenter',()=>{
+      const i = +h.dataset.i;
+      cross.setAttribute('x1',x(i)); cross.setAttribute('x2',x(i)); cross.style.opacity='1';
+      const rows = series.map(s=>s.values[i]==null?'':
+        `<div class="tr"><span><i style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${s.colour};margin-right:5px"></i>${esc(s.label)}</span><b>${esc(fmtFull(s.values[i]))}</b></div>`).join('');
+      const r = chart.getBoundingClientRect(), hb = h.getBoundingClientRect();
+      showTip(chart,tip,hb.left-r.left+hb.width/2,padT+26,
+        `<div class="ty">${esc(cats[i])}</div>${rows||'<div class="tr mut">No data</div>'}`);
+    });
+    h.addEventListener('mouseleave',()=>{ hideTip(tip); cross.style.opacity='0'; });
+  });
+}
+
+/* ----------------------------------------------------------------
+   Ranked horizontal bars, as HTML (crisp text, no label clipping).
+   rows: [{label,value,extra,onClick}]
+   ---------------------------------------------------------------- */
+function rankedBars(host, rows, opts){
+  opts = opts||{};
+  const fmt = opts.fmt||eurShort;
+  const max = rows.reduce((m,r)=>Math.max(m, r.value||0), 0) || 1;
+  host.innerHTML = '<div class="bars">'+rows.map((r,i)=>
+    `<div class="barrow${r.onClick?' clickable':''}" data-i="${i}" title="${esc(r.label)} — ${esc(fmt(r.value))}">
+       <span class="bn">${esc(r.label)}</span>
+       <span class="btrack"><span class="bfill" style="width:${Math.max((r.value/max)*100,0.6).toFixed(2)}%;background:${r.colour||opts.colour||'var(--s1)'}"></span></span>
+       <span class="bv">${esc(fmt(r.value))}</span>
+     </div>`).join('')+'</div>';
+  if(rows.some(r=>r.onClick)){
+    host.querySelectorAll('.barrow').forEach(el=>{
+      const r = rows[+el.dataset.i];
+      if(r.onClick) el.addEventListener('click',r.onClick);
+    });
+  }
+}
+
+/* Small inline sparkline for a row of values. */
+function sparkline(values, w, h, colour){
+  const v = values.filter(x=>x!=null);
+  if(v.length<2) return '';
+  const max = Math.max(...v.map(Math.abs))||1;
+  const n = values.length;
+  let d='', open=false;
+  values.forEach((x,i)=>{
+    if(x==null){ open=false; return; }
+    const px = (w*i)/(n-1), py = h-(Math.abs(x)/max)*(h-2)-1;
+    d += (open?' L':' M')+px.toFixed(1)+' '+py.toFixed(1); open=true;
+  });
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="vertical-align:middle">
+    <path d="${d.trim()}" fill="none" stroke="${colour||'var(--s1)'}" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+}
+</script>
+<script>
+/* ================================================================
+   Explore — search, facets, a numeric query row, and a windowed
+   results table over all 23,972 organisations.
+   ================================================================ */
+'use strict';
+
+const MEASURES = [
+  {k:'inc',   label:'Total income',          core:'linc', fmt:eur},
+  {k:'exp',   label:'Total expenditure',     core:'lexp', fmt:eur, abs:true},
+  {k:'gov',   label:'Government funding',    core:'lgov', fmt:eur},
+  {k:'ftot',  label:'Funding (all sources)', core:null,   fmt:eur},
+  {k:'na',    label:'Net assets',            core:'lna',  fmt:eur},
+  {k:'fr',    label:'Funds & reserves',      core:'lfr',  fmt:eur},
+  {k:'pay',   label:'Payroll',               core:'lpay', fmt:eur},
+  {k:'emp',   label:'Employees',             core:'lemp', fmt:int},
+  {k:'vol',   label:'Volunteers',            core:null,   fmt:int},
+  {k:'kmp',   label:'Key management pay',    core:null,   fmt:eur},
+  {k:'don',   label:'Donations & legacies',  core:null,   fmt:eur},
+  {k:'grants',label:'Grants',                core:null,   fmt:eur},
+  {k:'cash',  label:'Cash at bank',          core:null,   fmt:eur},
+];
+const MBY = Object.fromEntries(MEASURES.map(m=>[m.k,m]));
+
+const Q = {
+  text:'', sectors:new Set(), counties:new Set(), gforms:new Set(),
+  status:new Set(), flags:new Set(),
+  measure:'inc', op:'', val:'', year:'latest',
+  sort:'linc', dir:-1,
+  showAll:{sectors:false, counties:false, gforms:false}
+};
+let RESULT = [];
+let LOWNAME = null, LOWALT = null;
+
+/** Measure value for an organisation, honouring the year selector. */
+function measureVal(k, mk, year){
+  const m = MBY[mk];
+  if(year==='latest' && m.core) { const v = C()[m.core][k]; return m.abs&&v!=null?Math.abs(v):v; }
+  if(!DB.finReady) return null;
+  if(year==='any'){
+    const rows = DB.finByOrg.get(k); if(!rows) return null;
+    let best=null;
+    for(const r of rows){ const v=DB.fin.cols[mk][r]; if(v!=null){ const a=m.abs?Math.abs(v):v; if(best==null||a>best) best=a; } }
+    return best;
+  }
+  const v = finVal(k, mk, year);
+  return m.abs&&v!=null?Math.abs(v):v;
+}
+
+function ensureLower(){
+  if(LOWNAME) return;
+  const n = DB.core.n, nm = C().name;
+  LOWNAME = new Array(n);
+  for(let i=0;i<n;i++) LOWNAME[i]=nm[i].toLowerCase();
+}
+function ensureAltLower(){
+  if(LOWALT || !DB.extReady) return;
+  LOWALT = new Map();
+  const alt = E().alt||{};
+  for(const key in alt) LOWALT.set(+key, String(alt[key]).toLowerCase());
+}
+
+/* ---------------- the filter pipeline ---------------- */
+function passFacets(k, skip){
+  const c = C();
+  if(skip!=='sectors' && Q.sectors.size && !Q.sectors.has(c.sec[k])) return false;
+  if(skip!=='counties' && Q.counties.size && !Q.counties.has(c.cty[k])) return false;
+  if(skip!=='gforms'  && Q.gforms.size  && !Q.gforms.has(c.gf[k]))   return false;
+  if(skip!=='status' && Q.status.size){
+    const cur=isCurrent(k), dis=isDissolved(k), nd=noDirectory(k);
+    let ok=false;
+    if(Q.status.has('current')&&cur) ok=true;
+    if(Q.status.has('dissolved')&&dis) ok=true;
+    if(Q.status.has('nodir')&&nd) ok=true;
+    if(!ok) return false;
+  }
+  if(skip!=='flags' && Q.flags.size){
+    for(const f of Q.flags){
+      if(f==='acc'     && !inReg(k,R_ACC)) return false;
+      if(f==='noacc'   &&  inReg(k,R_ACC)) return false;
+      if(f==='fund'    && !inReg(k,R_FUND)) return false;
+      if(f==='charity' && !(DB.extReady ? extVal('rcn',k) : true)) return false;
+      if(f==='company' && !(DB.extReady ? extVal('cro',k) : true)) return false;
+      if(f==='school'  && !(DB.extReady ? extVal('roll',k) : true)) return false;
+      if(f==='sport'   && !(DB.extReady ? extVal('sport',k) : true)) return false;
+      if(f==='tax'     && !(DB.extReady ? extVal('tax',k) : true)) return false;
+    }
+  }
+  return true;
+}
+function passNumeric(k){
+  if(Q.op==='' || Q.val==='' || Q.val===null) return true;
+  const v = measureVal(k, Q.measure, Q.year);
+  const t = parseFloat(String(Q.val).replace(/[,\s€]/g,''));
+  if(isNaN(t)) return true;
+  if(v===null) return false;
+  switch(Q.op){
+    case 'gte': return v>=t;
+    case 'lte': return v<=t;
+    case 'gt':  return v>t;
+    case 'lt':  return v<t;
+  }
+  return true;
+}
+function textScore(k, needles){
+  const nm = LOWNAME[k];
+  let score = 0;
+  for(const nd of needles){
+    let p = nm.indexOf(nd);
+    if(p===0) score += 100;
+    else if(p>0 && (nm[p-1]===' '||nm[p-1]==='('||nm[p-1]==='-')) score += 55;
+    else if(p>0) score += 22;
+    else {
+      // alternative names, then registration numbers
+      let hit = false;
+      if(LOWALT){ const a = LOWALT.get(k); if(a && a.indexOf(nd)>=0){ score += 30; hit=true; } }
+      if(!hit && DB.extReady && /^\d{2,}$/.test(nd)){
+        for(const key of ['cro','rcn','chy','roll']){
+          const v = extVal(key,k);
+          if(v && String(v).replace(/\D/g,'').indexOf(nd)===0){ score += 85; hit=true; break; }
+        }
+      }
+      if(!hit) return -1;
+    }
+  }
+  return score;
+}
+function runQuery(){
+  ensureLower(); ensureAltLower();
+  const needles = Q.text.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const n = DB.core.n, out = [];
+  if(needles.length){
+    const scored = [];
+    for(let k=0;k<n;k++){
+      if(!passFacets(k)||!passNumeric(k)) continue;
+      const s = textScore(k, needles);
+      if(s>=0) scored.push([k,s]);
+    }
+    // relevance first, then the chosen sort as tiebreak
+    scored.sort((a,b)=> b[1]-a[1] || cmpSort(a[0],b[0]));
+    for(const [k] of scored) out.push(k);
+  }else{
+    for(let k=0;k<n;k++) if(passFacets(k)&&passNumeric(k)) out.push(k);
+    out.sort(cmpSort);
+  }
+  RESULT = out;
+}
+function sortValue(k){
+  const s = Q.sort, c = C();
+  if(s==='name') return rawName(k);
+  if(s==='sector'){ const x=sectorOf(k); return x?x.name:'~'; }
+  if(s==='county') return countyOf(k)||'~';
+  if(s==='year') return c.ly[k];
+  if(s==='nyr') return c.nyr[k];
+  if(s.charAt(0)==='l') { const v=c[s][k]; return v==null?null:(s==='lexp'?Math.abs(v):v); }
+  return measureVal(k, s, Q.year);
+}
+function cmpSort(a,b){
+  const va = sortValue(a), vb = sortValue(b);
+  const na = va===null||va===undefined, nb = vb===null||vb===undefined;
+  if(na&&nb) return rawName(a)<rawName(b)?-1:1;
+  if(na) return 1;                         // blanks always last
+  if(nb) return -1;
+  if(typeof va==='string') return Q.dir*(va<vb?-1:va>vb?1:0);
+  return Q.dir*(va-vb)||(rawName(a)<rawName(b)?-1:1);
+}
+
+/* ---------------- facet counts ---------------- */
+function facetCounts(kind){
+  const counts = new Map();
+  const needles = Q.text.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const col = kind==='sectors'?'sec':kind==='counties'?'cty':'gf';
+  for(let k=0;k<DB.core.n;k++){
+    if(!passFacets(k,kind)||!passNumeric(k)) continue;
+    if(needles.length && textScore(k,needles)<0) continue;
+    const v = C()[col][k];
+    if(v<0) continue;
+    counts.set(v,(counts.get(v)||0)+1);
+  }
+  return counts;
+}
+function statusCounts(){
+  const o = {current:0,dissolved:0,nodir:0,acc:0,noacc:0,fund:0};
+  const needles = Q.text.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  for(let k=0;k<DB.core.n;k++){
+    if(!passFacets(k,'status')||!passNumeric(k)) continue;
+    if(needles.length && textScore(k,needles)<0) continue;
+    if(isCurrent(k)) o.current++; else if(isDissolved(k)) o.dissolved++; else o.nodir++;
+  }
+  for(let k=0;k<DB.core.n;k++){
+    if(!passFacets(k,'flags')||!passNumeric(k)) continue;
+    if(needles.length && textScore(k,needles)<0) continue;
+    if(inReg(k,R_ACC)) o.acc++; else o.noacc++;
+    if(inReg(k,R_FUND)) o.fund++;
+  }
+  return o;
+}
+
+/* ---------------- rendering ---------------- */
+const ALLCOLS = [
+  {k:'name',  label:'Organisation',  w:'minmax(150px,2.4fr)', keep:3},
+  {k:'sector',label:'Sector',        w:'minmax(120px,1fr)',   keep:1},
+  {k:'county',label:'County',        w:'96px',                keep:0},
+  {k:'year',  label:'FY',            w:'56px',  r:true,       keep:1},
+  {k:'linc',  label:'Income',        w:'104px', r:true,       keep:3},
+  {k:'lexp',  label:'Expenditure',   w:'104px', r:true,       keep:1},
+  {k:'lemp',  label:'Staff',         w:'66px',  r:true,       keep:2},
+  {k:'lgov',  label:'State funding', w:'104px', r:true,       keep:0},
+];
+/* Narrow screens drop the lowest-priority columns rather than overflowing. */
+function activeCols(){
+  const w = window.innerWidth;
+  const min = w < 560 ? 3 : w < 860 ? 2 : w < 1160 ? 1 : 0;
+  return ALLCOLS.filter(c=>c.keep >= min);
+}
+let COLS = activeCols();
+
+function viewExplore(){
+  COLS = activeCols();
+  const m = document.getElementById('main');
+  m.innerHTML = `
+  <div class="explore">
+    <aside class="rail" id="rail"></aside>
+    <section>
+      <div class="searchwrap">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg>
+        <input id="q" type="search" autocomplete="off" spellcheck="false"
+          placeholder="Search 23,972 organisations by name, or by CRO / charity number…" value="${esc(Q.text)}">
+      </div>
+      <div class="toolbar">
+        <span class="resn" id="resn"></span>
+        <span class="pills" id="pills"></span>
+        <span style="margin-left:auto;display:flex;gap:7px">
+          <button class="tbtn" id="csvbtn">Copy as CSV</button>
+          <button class="tbtn" id="clrbtn">Reset</button>
+        </span>
+      </div>
+      <div class="tblwrap">
+        <div class="thead" id="thead"></div>
+        <div id="scroller"><div id="spacer"></div></div>
+      </div>
+      <p class="mut" style="font-size:11.5px;margin:9px 0 0">
+        Figures are the organisation's most recently filed accounts unless a year is chosen in the filter.
+        Expenditure is published as a negative figure in the source and is shown here as a positive amount.
+        Click any row for the full accounts.
+      </p>
+    </section>
+  </div>`;
+
+  const q = document.getElementById('q');
+  let t=null;
+  q.addEventListener('input',()=>{
+    clearTimeout(t);
+    t=setTimeout(()=>{ Q.text=q.value; refreshExplore(); },170);
+  });
+  document.getElementById('csvbtn').addEventListener('click',copyCSV);
+  document.getElementById('clrbtn').addEventListener('click',()=>{
+    Q.text=''; Q.sectors.clear(); Q.counties.clear(); Q.gforms.clear();
+    Q.status.clear(); Q.flags.clear(); Q.op=''; Q.val=''; Q.year='latest';
+    Q.sort='linc'; Q.dir=-1; viewExplore();
+  });
+  renderHead();
+  document.getElementById('scroller').addEventListener('scroll',paintRows);
+  addResize(()=>{
+    const next = activeCols();
+    if(next.length !== COLS.length){ COLS = next; renderHead(); }
+    paintRows();
+  });
+  refreshExplore();
+}
+
+function renderHead(){
+  const h = document.getElementById('thead');
+  h.style.gridTemplateColumns = COLS.map(c=>c.w).join(' ');
+  h.style.display='grid';
+  h.innerHTML = COLS.map(c=>{
+    const on = Q.sort===c.k;
+    const ar = on ? (Q.dir===-1?'↓':'↑') : '';
+    return `<div class="${c.r?'r':''}${on?' srt':''}" data-k="${c.k}" title="Sort by ${esc(c.label)}">${esc(c.label)}<span>${ar}</span></div>`;
+  }).join('');
+  h.querySelectorAll('div[data-k]').forEach(d=>{
+    d.addEventListener('click',()=>{
+      const k = d.dataset.k;
+      if(Q.sort===k) Q.dir = -Q.dir;
+      else { Q.sort=k; Q.dir = (k==='name'||k==='sector'||k==='county') ? 1 : -1; }
+      renderHead(); refreshExplore();
+    });
+  });
+}
+
+function refreshExplore(){
+  if(!document.getElementById('scroller')) return;
+  runQuery();
+  const n = RESULT.length;
+  document.getElementById('resn').innerHTML =
+    `<b>${NF.format(n)}</b> organisation${n===1?'':'s'}`+
+    (n<DB.core.n ? ` <span class="mut">of ${NF.format(DB.core.n)}</span>` : '');
+  renderRail(); renderPills();
+  const sp = document.getElementById('spacer');
+  sp.style.height = (n*34)+'px';
+  document.getElementById('scroller').scrollTop = 0;
+  paintRows();
+}
+
+function paintRows(){
+  const sc = document.getElementById('scroller'); if(!sc) return;
+  const sp = document.getElementById('spacer');
+  const H = 34, top = sc.scrollTop, vh = sc.clientHeight;
+  const first = Math.max(0, Math.floor(top/H)-6);
+  const last  = Math.min(RESULT.length, Math.ceil((top+vh)/H)+6);
+  if(!RESULT.length){
+    sp.innerHTML = `<div class="empty">No organisation matches these filters.<br>
+      <button class="tbtn" style="margin-top:12px" onclick="document.getElementById('clrbtn').click()">Reset filters</button></div>`;
+    return;
+  }
+  const tpl = COLS.map(c=>c.w).join(' ');
+  let html='';
+  for(let i=first;i<last;i++){
+    const k = RESULT[i];
+    const c = C();
+    const sec = sectorOf(k), sub = subsectorOf(k);
+    const inc = Q.year==='latest' ? c.linc[k] : measureVal(k,'inc',Q.year);
+    const exp = Q.year==='latest' ? c.lexp[k] : measureVal(k,'exp',Q.year);
+    const emp = Q.year==='latest' ? c.lemp[k] : measureVal(k,'emp',Q.year);
+    const gov = Q.year==='latest' ? c.lgov[k] : measureVal(k,'gov',Q.year);
+    const dash = '<span class="mut">—</span>';
+    const cell = {
+      name:  `<div class="nm" title="${esc(rawName(k))}">${esc(orgName(k))}${
+               isDissolved(k)?'<span class="bdg no" style="margin-left:6px">Not in 2024</span>':''}</div>`,
+      sector:`<div class="sub" title="${esc(sub?sub.name:'')}">${esc(sub?sub.name:(sec?sec.name:'—'))}</div>`,
+      county:`<div class="sub">${esc(titleise(countyOf(k)||'—'))}</div>`,
+      year:  `<div class="r sub">${c.ly[k]||'—'}</div>`,
+      linc:  `<div class="r">${inc==null?dash:esc(eurShort(inc))}</div>`,
+      lexp:  `<div class="r">${exp==null?dash:esc(eurShort(Math.abs(exp)))}</div>`,
+      lemp:  `<div class="r">${emp==null?dash:esc(int(emp))}</div>`,
+      lgov:  `<div class="r">${gov==null?dash:esc(eurShort(gov))}</div>`,
+    };
+    html += `<div class="row" style="top:${i*H}px;display:grid;grid-template-columns:${tpl}" data-id="${esc(c.id[k])}">`
+          + COLS.map(col=>cell[col.k]).join('') + `</div>`;
+  }
+  sp.innerHTML = html;
+  sp.querySelectorAll('.row').forEach(r=>{
+    r.addEventListener('click',()=>{ location.hash = 'org-'+r.dataset.id; });
+  });
+}
+
+/* ---------------- facet rail ---------------- */
+function renderRail(){
+  const rail = document.getElementById('rail'); if(!rail) return;
+  const sc = facetCounts('sectors'), cc = facetCounts('counties'), gc = facetCounts('gforms');
+  const st = statusCounts();
+  const yearOpts = ['latest','any'].concat(DB.years.map(String));
+
+  function group(kind, items, sel, counts, labelFn){
+    const all = items.map((it,i)=>({i,label:labelFn(it),n:counts.get(i)||0}))
+      .filter(x=>x.n>0 || sel.has(x.i))
+      .sort((a,b)=> b.n-a.n || (a.label<b.label?-1:1));
+    const show = Q.showAll[kind] ? all : all.slice(0,8);
+    return show.map(x=>
+      `<label class="chk${sel.has(x.i)?' on':''}">
+        <input type="checkbox" data-kind="${kind}" data-i="${x.i}" ${sel.has(x.i)?'checked':''}>
+        <span>${esc(x.label)}</span><span class="cnt">${NF.format(x.n)}</span>
+      </label>`).join('') +
+      (all.length>8 ? `<button class="more" data-toggle="${kind}">${Q.showAll[kind]?'Show fewer':'Show all '+all.length+'…'}</button>` : '');
+  }
+
+  rail.innerHTML = `
+  <div class="qbuild">
+    <div class="lab" style="margin-bottom:7px">Numeric filter</div>
+    <div class="qrow">
+      <select id="qm">${MEASURES.map(x=>`<option value="${x.k}"${Q.measure===x.k?' selected':''}>${esc(x.label)}</option>`).join('')}</select>
+    </div>
+    <div class="qrow">
+      <select id="qo" style="flex:0 0 76px">
+        <option value=""${Q.op===''?' selected':''}>any</option>
+        <option value="gte"${Q.op==='gte'?' selected':''}>≥</option>
+        <option value="lte"${Q.op==='lte'?' selected':''}>≤</option>
+        <option value="gt"${Q.op==='gt'?' selected':''}>&gt;</option>
+        <option value="lt"${Q.op==='lt'?' selected':''}>&lt;</option>
+      </select>
+      <input id="qv" placeholder="amount" value="${esc(Q.val)}" inputmode="numeric">
+    </div>
+    <div class="qrow">
+      <select id="qy">${yearOpts.map(y=>`<option value="${y}"${Q.year===y?' selected':''}>${y==='latest'?'Latest filed year':y==='any'?'Best of any year':'FY '+y}</option>`).join('')}</select>
+    </div>
+    ${!DB.finReady?'<div class="mut" style="font-size:11px;margin-top:6px"><span class="spin"></span> loading year-by-year figures…</div>':''}
+  </div>
+
+  <div class="fgroup">
+    <span class="lab">Register status</span>
+    <label class="chk${Q.status.has('current')?' on':''}"><input type="checkbox" data-kind="status" data-v="current" ${Q.status.has('current')?'checked':''}><span>In 2024 register</span><span class="cnt">${NF.format(st.current)}</span></label>
+    <label class="chk${Q.status.has('dissolved')?' on':''}"><input type="checkbox" data-kind="status" data-v="dissolved" ${Q.status.has('dissolved')?'checked':''}><span>Not in 2024 register</span><span class="cnt">${NF.format(st.dissolved)}</span></label>
+    <label class="chk${Q.status.has('nodir')?' on':''}"><input type="checkbox" data-kind="status" data-v="nodir" ${Q.status.has('nodir')?'checked':''}><span>Accounts only</span><span class="cnt">${NF.format(st.nodir)}</span></label>
+  </div>
+
+  <div class="fgroup">
+    <span class="lab">Data held</span>
+    <label class="chk${Q.flags.has('acc')?' on':''}"><input type="checkbox" data-kind="flags" data-v="acc" ${Q.flags.has('acc')?'checked':''}><span>Has accounts</span><span class="cnt">${NF.format(st.acc)}</span></label>
+    <label class="chk${Q.flags.has('noacc')?' on':''}"><input type="checkbox" data-kind="flags" data-v="noacc" ${Q.flags.has('noacc')?'checked':''}><span>No accounts</span><span class="cnt">${NF.format(st.noacc)}</span></label>
+    <label class="chk${Q.flags.has('fund')?' on':''}"><input type="checkbox" data-kind="flags" data-v="fund" ${Q.flags.has('fund')?'checked':''}><span>State-funded 2020</span><span class="cnt">${NF.format(st.fund)}</span></label>
+    <label class="chk${Q.flags.has('charity')?' on':''}"><input type="checkbox" data-kind="flags" data-v="charity" ${Q.flags.has('charity')?'checked':''}><span>Registered charity</span></label>
+    <label class="chk${Q.flags.has('school')?' on':''}"><input type="checkbox" data-kind="flags" data-v="school" ${Q.flags.has('school')?'checked':''}><span>School</span></label>
+    <label class="chk${Q.flags.has('sport')?' on':''}"><input type="checkbox" data-kind="flags" data-v="sport" ${Q.flags.has('sport')?'checked':''}><span>Sports body</span></label>
+  </div>
+
+  <div class="fgroup"><span class="lab">Sector</span>${group('sectors',DB.meta.sectors,Q.sectors,sc,s=>s.name)}</div>
+  <div class="fgroup"><span class="lab">County</span>${group('counties',DB.meta.counties,Q.counties,cc,c=>titleise(c))}</div>
+  <div class="fgroup"><span class="lab">Legal form</span>${group('gforms',DB.meta.govForms,Q.gforms,gc,g=>g)}</div>`;
+
+  rail.querySelectorAll('input[type=checkbox]').forEach(cb=>{
+    cb.addEventListener('change',()=>{
+      const kind = cb.dataset.kind;
+      const set = kind==='sectors'?Q.sectors:kind==='counties'?Q.counties:kind==='gforms'?Q.gforms:
+                  kind==='status'?Q.status:Q.flags;
+      const v = cb.dataset.i!==undefined ? +cb.dataset.i : cb.dataset.v;
+      if(cb.checked) set.add(v); else set.delete(v);
+      refreshExplore();
+    });
+  });
+  rail.querySelectorAll('button[data-toggle]').forEach(b=>{
+    b.addEventListener('click',()=>{ const k=b.dataset.toggle; Q.showAll[k]=!Q.showAll[k]; renderRail(); });
+  });
+  const qm=rail.querySelector('#qm'), qo=rail.querySelector('#qo'),
+        qv=rail.querySelector('#qv'), qy=rail.querySelector('#qy');
+  qm.addEventListener('change',()=>{ Q.measure=qm.value; if(Q.op) refreshExplore(); });
+  qo.addEventListener('change',()=>{ Q.op=qo.value; refreshExplore(); });
+  qy.addEventListener('change',()=>{ Q.year=qy.value; refreshExplore(); });
+  let vt=null;
+  qv.addEventListener('input',()=>{ clearTimeout(vt); vt=setTimeout(()=>{ Q.val=qv.value; refreshExplore(); },280); });
+}
+
+function renderPills(){
+  const p = document.getElementById('pills'); if(!p) return;
+  const out=[];
+  const push=(label,fn)=>out.push({label,fn});
+  Q.sectors.forEach(i=>push(DB.meta.sectors[i].name,()=>Q.sectors.delete(i)));
+  Q.counties.forEach(i=>push(titleise(DB.meta.counties[i]),()=>Q.counties.delete(i)));
+  Q.gforms.forEach(i=>push(DB.meta.govForms[i],()=>Q.gforms.delete(i)));
+  Q.status.forEach(v=>push({current:'In 2024 register',dissolved:'Not in 2024 register',nodir:'Accounts only'}[v],()=>Q.status.delete(v)));
+  Q.flags.forEach(v=>push({acc:'Has accounts',noacc:'No accounts',fund:'State-funded 2020',charity:'Registered charity',company:'Company',school:'School',sport:'Sports body',tax:'Tax relief'}[v],()=>Q.flags.delete(v)));
+  if(Q.op && Q.val!==''){
+    const sym={gte:'≥',lte:'≤',gt:'>',lt:'<'}[Q.op];
+    const yl = Q.year==='latest'?'latest year':Q.year==='any'?'any year':'FY '+Q.year;
+    push(`${MBY[Q.measure].label} ${sym} ${NF.format(parseFloat(String(Q.val).replace(/[,\s€]/g,''))||0)} (${yl})`,
+      ()=>{ Q.op=''; Q.val=''; });
+  }
+  p.innerHTML = out.map((o,i)=>`<span class="pill">${esc(o.label)}<button data-i="${i}" aria-label="Remove filter">×</button></span>`).join('');
+  p.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click',()=>{ out[+b.dataset.i].fn(); refreshExplore(); });
+  });
+}
+
+/* ---------------- CSV (the frame refuses downloads, so copy) ---------------- */
+function copyCSV(){
+  const head = ['Benefacts ID','Name','Sector','Subsector','County','Legal form',
+    'CRO','Charity no','In 2024 register','Financial year','Income','Expenditure',
+    'Net assets','Employees','Payroll','Government funding'];
+  const q = s => { s = s===null||s===undefined?'':String(s);
+    return /[",\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; };
+  const lines = [head.join(',')];
+  const cap = Math.min(RESULT.length, 20000);
+  for(let i=0;i<cap;i++){
+    const k = RESULT[i], c = C(), sec=sectorOf(k), sub=subsectorOf(k);
+    lines.push([c.id[k], rawName(k), sec?sec.name:'', sub?sub.name:'', countyOf(k)||'',
+      gformOf(k)||'', extVal('cro',k), extVal('rcn',k), isCurrent(k)?'Y':'N',
+      c.ly[k]||'', c.linc[k]??'', c.lexp[k]==null?'':Math.abs(c.lexp[k]),
+      c.lna[k]??'', c.lemp[k]??'', c.lpay[k]??'', c.lgov[k]??''].map(q).join(','));
+  }
+  const text = lines.join('\n');
+  const btn = document.getElementById('csvbtn');
+  navigator.clipboard.writeText(text).then(()=>{
+    btn.textContent = `Copied ${NF.format(cap)} rows`;
+    setTimeout(()=>btn.textContent='Copy as CSV',2200);
+  }).catch(()=>{ btn.textContent='Copy failed'; setTimeout(()=>btn.textContent='Copy as CSV',2200); });
+}
+</script>
+<script>
+/* ================================================================
+   Organisation profile — identifiers, stated purpose, financial
+   history, the full filed accounts, and state funding.
+   ================================================================ */
+'use strict';
+
+const SECTION_ORDER = ['Income & Expenditure','Balance Sheet','Notes  to the Accounts','Funding','Other'];
+const SECTION_LABEL = {
+  'Income & Expenditure':'Income & expenditure',
+  'Balance Sheet':'Balance sheet',
+  'Notes  to the Accounts':'Notes to the accounts',
+  'Funding':'Funding analysis',
+  'Other':'Other fields'
+};
+
+async function viewOrg(id){
+  const m = document.getElementById('main');
+  const k = DB.byId.get(id);
+  if(k===undefined){
+    m.innerHTML = `<div class="sect"><h2>Organisation not found</h2>
+      <p class="sub">No organisation in this dataset carries the id ${esc(id)}.</p>
+      <button class="tbtn" onclick="location.hash='explore'">Back to search</button></div>`;
+    return;
+  }
+  const c = C();
+  const sec = sectorOf(k), sub = subsectorOf(k);
+  const years = finYears(k);
+
+  m.innerHTML = `
+    <button class="back" id="backbtn">← Back to register</button>
+    <div class="ohead">
+      <h1>${esc(orgName(k))}</h1>
+      <div class="meta">
+        <span class="bdg">${esc(sec?sec.name:'Unclassified')}</span>
+        ${sub?`<span class="mut" style="font-size:12.5px">${esc(sub.name)}</span>`:''}
+        ${isCurrent(k)
+          ? '<span class="bdg ok">In the 2024 register</span>'
+          : noDirectory(k)
+            ? '<span class="bdg wn">Accounts only — not in a published directory</span>'
+            : '<span class="bdg no">Not in the 2024 register</span>'}
+        ${inReg(k,R_FUND)?'<span class="bdg">State-funded 2020</span>':''}
+      </div>
+      <div class="alt" id="altnames"></div>
+    </div>
+    <div class="ocols">
+      <div id="ocol-main">
+        <div id="finsummary"></div>
+        <div id="accounts"></div>
+        <div id="statefunding"></div>
+      </div>
+      <aside>
+        <div class="card" style="margin-bottom:14px">
+          <span class="lab">Identifiers</span>
+          <dl class="kv" id="ids"></dl>
+        </div>
+        <div class="card" style="margin-bottom:14px">
+          <span class="lab">Registers</span>
+          <dl class="kv" id="regs"></dl>
+        </div>
+        <div class="card" id="purposecard">
+          <span class="lab">Stated purpose</span>
+          <div id="purpose"><span class="skel" style="display:block;width:100%"></span></div>
+        </div>
+      </aside>
+    </div>`;
+
+  document.getElementById('backbtn').addEventListener('click',()=>{
+    if(history.length>1) history.back(); else location.hash='explore';
+  });
+
+  /* ---- alternative names ---- */
+  const alt = String(extVal('alt',k)||'').split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+  if(alt.length) document.getElementById('altnames').innerHTML =
+    '<span class="lab">Also known as</span> '+alt.map(a=>esc(titleise(a))).join(' &middot; ');
+
+  /* ---- identifier panel ---- */
+  const idRow = (dt,dd,mono)=> dd ? `<div><dt>${esc(dt)}</dt><dd class="${mono?'mono':''}">${dd}</dd></div>` : '';
+  const url = extVal('url',k);
+  document.getElementById('ids').innerHTML =
+    idRow('Benefacts ID', esc(c.id[k]), true) +
+    idRow('CRO number', esc(extVal('cro',k)), true) +
+    idRow('Charity (RCN)', esc(extVal('rcn',k)), true) +
+    idRow('Revenue (CHY)', esc(extVal('chy',k)), true) +
+    idRow('School roll', esc(extVal('roll',k)), true) +
+    idRow('Friendly society', esc(extVal('rfs',k)), true) +
+    idRow('Legal form', esc(gformOf(k)||'')) +
+    idRow('Incorporated', esc(extVal('inc',k))) +
+    idRow('Address', esc(titleise(extVal('addr',k)))) +
+    idRow('County', esc(titleise(countyOf(k)||''))) +
+    idRow('Eircode', esc(extVal('eir',k)), true) +
+    idRow('Website', url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">${esc(url.replace(/^https?:\/\//,''))}</a>`:'') +
+    (DB.extReady?'':'<div><dt>Loading</dt><dd><span class="spin"></span></dd></div>');
+
+  const crost = extVal('crost',k), rcnst = extVal('rcnst',k);
+  document.getElementById('regs').innerHTML =
+    idRow('Company status', crost?esc(titleise(crost)):'') +
+    idRow('Charity status', rcnst?esc(rcnst):'') +
+    idRow('Tax relief', extVal('tax',k)?'Yes':'') +
+    idRow('Sports body', extVal('sport',k)?'Yes':'') +
+    `<div><dt>Appears in</dt><dd>${
+      [inReg(k,R_LEGACY)?'2015–2021':null, inReg(k,R_2022)?'2022':null, inReg(k,R_2023)?'2024':null]
+      .filter(Boolean).map(x=>`<span class="bdg" style="margin:0 3px 3px 0">${x}</span>`).join('') ||
+      '<span class="mut">no published directory</span>'}</dd></div>` +
+    `<div><dt>Accounts held</dt><dd>${years.length
+      ? esc(years.length+' year'+(years.length===1?'':'s')+' · '+years[0]+'–'+years[years.length-1])
+      : '<span class="mut">none</span>'}</dd></div>`;
+
+  /* ---- purpose text ---- */
+  loadGov(id).then(g=>{
+    const el = document.getElementById('purpose'); if(!el) return;
+    if(!g){ document.getElementById('purposecard').remove(); return; }
+    let html = '';
+    if(g.lp) html += `<div class="lab" style="margin-bottom:5px">Legal purpose</div>
+      <div class="purpose clamp" id="lp">${esc(g.lp)}</div>`;
+    if(g.co) html += `<div class="lab" style="margin:13px 0 5px">Charitable objects</div>
+      <div class="purpose clamp" id="co">${esc(g.co)}</div>`;
+    html += `<button class="more" id="expandp" style="margin-top:8px">Show full text</button>`;
+    el.innerHTML = html;
+    document.getElementById('expandp').addEventListener('click',e=>{
+      const on = el.querySelector('.purpose.clamp');
+      el.querySelectorAll('.purpose').forEach(p=>p.classList.toggle('clamp', !on));
+      e.target.textContent = on ? 'Show less' : 'Show full text';
+    });
+  });
+
+  /* ---- financial summary + accounts ---- */
+  if(!years.length){
+    document.getElementById('finsummary').innerHTML = `
+      <div class="note">No financial statements for this organisation are held in the archived
+      Benefacts dataset. That does not mean none were filed — the dataset covers accounts
+      keyed by Benefacts up to 2020, and ${NF.format(DB.stats.orgs - DB.stats.withAccounts)}
+      of the ${NF.format(DB.stats.orgs)} organisations here have no accounts in it.</div>`;
+  }else{
+    renderFinSummary(k, years);
+  }
+  renderStateFunding(id);
+  if(years.length) renderAccounts(id, years);
+}
+
+function renderFinSummary(k, years){
+  const host = document.getElementById('finsummary');
+  const f = DB.fin.cols;
+  const cats = years.map(String);
+  const inc = years.map(y=>finVal(k,'inc',y));
+  const exp = years.map(y=>{ const v=finVal(k,'exp',y); return v==null?null:Math.abs(v); });
+  const emp = years.map(y=>finVal(k,'emp',y));
+  const gov = years.map(y=>finVal(k,'gov',y));
+  const last = years[years.length-1];
+  const li = finVal(k,'inc',last), le = finVal(k,'exp',last);
+  const surplus = (li!=null&&le!=null) ? li+le : null;   // expenditure is negative in source
+
+  host.innerHTML = `
+    <div class="stats" style="margin-bottom:16px">
+      <div class="stat"><span class="lab">Income · FY ${last}</span><div class="v">${esc(eurShort(li))}</div>
+        <div class="d">${li==null?'not stated':'total income & endowments'}</div></div>
+      <div class="stat"><span class="lab">Expenditure</span><div class="v">${esc(eurShort(le==null?null:Math.abs(le)))}</div>
+        <div class="d">${le==null?'not stated':'total expenditure'}</div></div>
+      <div class="stat"><span class="lab">Surplus / deficit</span>
+        <div class="v" style="color:${surplus==null?'inherit':surplus>=0?'var(--good)':'var(--crit)'}">${esc(eurShort(surplus))}</div>
+        <div class="d">${surplus==null?'not calculable':'income less expenditure'}</div></div>
+      <div class="stat"><span class="lab">Employees</span><div class="v">${esc(int(finVal(k,'emp',last)))}</div>
+        <div class="d">average in the year</div></div>
+      <div class="stat"><span class="lab">Net assets</span><div class="v">${esc(eurShort(finVal(k,'na',last)))}</div>
+        <div class="d">balance sheet</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:14px">
+      <div class="cardhead">
+        <div class="grow">
+          <h3>Income and expenditure, ${years[0]}–${years[years.length-1]}</h3>
+          <span class="mut" style="font-size:12px">As filed. Gaps mean no accounts were keyed for that year.</span>
+        </div>
+        <div class="viewtog" id="fvt">
+          <button data-v="chart" aria-pressed="true">Chart</button>
+          <button data-v="table" aria-pressed="false">Table</button>
+        </div>
+      </div>
+      <div id="fchart"></div>
+      <div id="ftable" hidden></div>
+    </div>`;
+
+  const chartHost = document.getElementById('fchart');
+  const draw = () => groupedBars(chartHost, cats, [
+    {label:'Income', colour:'var(--s1)', values:inc},
+    {label:'Expenditure', colour:'var(--s2)', values:exp}
+  ], {aria:'Income and expenditure by financial year', plotH:190});
+  draw();
+  addResize(draw);
+
+  document.getElementById('ftable').innerHTML = `<div class="scrollx"><table class="plain">
+    <thead><tr><th>Financial year</th><th class="r">Income</th><th class="r">Expenditure</th>
+    <th class="r">Surplus / deficit</th><th class="r">Employees</th><th class="r">Govt funding</th></tr></thead>
+    <tbody>${years.map((y,i)=>{
+      const s = (inc[i]!=null&&exp[i]!=null)?inc[i]-exp[i]:null;
+      return `<tr><td class="num">${y}</td><td class="r">${esc(eur(inc[i]))}</td>
+        <td class="r">${esc(eur(exp[i]))}</td>
+        <td class="r" style="color:${s==null?'inherit':s>=0?'var(--good)':'var(--crit)'}">${esc(eur(s))}</td>
+        <td class="r">${esc(int(emp[i]))}</td><td class="r">${esc(eur(gov[i]))}</td></tr>`;
+    }).join('')}</tbody></table></div>`;
+
+  document.querySelectorAll('#fvt button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const chart = b.dataset.v==='chart';
+      document.querySelectorAll('#fvt button').forEach(x=>x.setAttribute('aria-pressed', String(x.dataset.v===b.dataset.v)));
+      document.getElementById('fchart').hidden = !chart;
+      document.getElementById('ftable').hidden = chart;
+      if(chart) draw();
+    });
+  });
+}
+
+/* ---------------- the full filed accounts ---------------- */
+async function renderAccounts(id, years){
+  const host = document.getElementById('accounts');
+  host.innerHTML = `<div class="card"><span class="lab">Filed accounts</span>
+    <div class="mut" style="font-size:12.5px;margin-top:8px"><span class="spin"></span> loading the full line items…</div></div>`;
+  const rows = await loadDetail(id);
+  if(!rows){ host.innerHTML=''; return; }
+
+  const byYear = new Map(rows.map(r=>[r.y,r]));
+  const ys = rows.map(r=>r.y).sort((a,b)=>a-b);
+  const fields = DB.meta.finFields;
+
+  // group the 182 fields by section, keeping dictionary order and depth
+  const groups = new Map();
+  for(const f of fields){
+    if(f.section==='Identity') continue;
+    if(!groups.has(f.section)) groups.set(f.section,[]);
+    groups.get(f.section).push(f);
+  }
+
+  let html = `<div class="card">
+    <div class="cardhead"><div class="grow">
+      <h3>Filed accounts, line by line</h3>
+      <span class="mut" style="font-size:12px">Every field Benefacts captured from the filed financial
+      statements. Rows with no figure in any year are hidden.</span>
+    </div></div>`;
+
+  let shown = 0;
+  for(const sname of SECTION_ORDER){
+    const fs = groups.get(sname); if(!fs) continue;
+    const live = fs.filter(f=>ys.some(y=>byYear.get(y)[f.code]!==undefined));
+    if(!live.length) continue;
+    shown += live.length;
+    html += `<div class="lab" style="display:block;margin:17px 0 5px">${esc(SECTION_LABEL[sname]||sname)}</div>
+      <div class="scrollx"><table class="plain">
+      <thead><tr><th style="min-width:230px">Line item</th>${ys.map(y=>`<th class="r">${y}</th>`).join('')}</tr></thead>
+      <tbody>${live.map(f=>{
+        const tot = f.depth===0;
+        return `<tr class="${tot?'tot':''}">
+          <td class="${f.depth?'ind'+f.depth:''}" title="${esc(f.code)}">${esc(f.label)}</td>
+          ${ys.map(y=>{
+            const v = byYear.get(y)[f.code];
+            return `<td class="r">${v===undefined?'<span class="mut">—</span>':esc(eur(v))}</td>`;
+          }).join('')}</tr>`;
+      }).join('')}</tbody></table></div>`;
+  }
+
+  // per-year provenance
+  html += `<div class="lab" style="display:block;margin:19px 0 5px">How each year was filed</div>
+    <div class="scrollx"><table class="plain">
+    <thead><tr><th>Year</th><th>Year end</th><th>Source</th><th>Audited</th>
+      <th>Basis</th><th>Flags</th></tr></thead>
+    <tbody>${ys.map(y=>{
+      const r = byYear.get(y), fl = r.fl||0;
+      const flags = [];
+      if(fl&1) flags.push('SORP');
+      if(fl&2) flags.push('Abridged');
+      if(fl&4) flags.push('HSE s.38');
+      if(fl&8) flags.push('HEA-funded');
+      if(fl&16) flags.push('2+ filings in year');
+      const aud = (fl&64) ? ((fl&32)?'<span class="bdg ok">Audited</span>':'<span class="bdg wn">Unaudited</span>')
+                          : '<span class="mut">not stated</span>';
+      return `<tr><td class="num">${y}</td><td class="num">${esc(r.e||'—')}</td>
+        <td>${esc(r.sr||'—')}</td><td>${aud}</td><td>${esc(r.rs||'—')}</td>
+        <td>${flags.map(f=>`<span class="bdg" style="margin:0 3px 2px 0">${esc(f)}</span>`).join('')||'<span class="mut">—</span>'}</td></tr>`;
+    }).join('')}</tbody></table></div>
+    <p class="mut" style="font-size:11.5px;margin:11px 0 0">
+      ${shown} populated line items across ${ys.length} year${ys.length===1?'':'s'}.
+      Expenditure, creditors and other outflows carry a negative sign in the source data.
+      Source abbreviations: CRO — Companies Registration Office; RFS — Registry of Friendly
+      Societies; SIPO — Standards in Public Office; OIR — Oireachtas; SELF — supplied by the organisation.
+    </p></div>`;
+  host.innerHTML = html;
+}
+
+/* ---------------- state funding 2020 ---------------- */
+function renderStateFunding(id){
+  const host = document.getElementById('statefunding');
+  if(!DB.funding){ host.innerHTML=''; return; }
+  const rec = DB.funding[id];
+  if(!rec){ host.innerHTML=''; return; }
+
+  const funders = Object.keys(rec).sort((a,b)=>(rec[b].total||0)-(rec[a].total||0));
+  const total = funders.reduce((s,f)=>s+(rec[f].total||0),0);
+  const named = funders.filter(f=>rec[f].total);
+
+  host.innerHTML = `<div class="card" style="margin-top:14px">
+    <div class="cardhead"><div class="grow">
+      <h3>State funding, 2020</h3>
+      <span class="mut" style="font-size:12px">From the Benefacts <i>Who Funds What</i> directory (beta).
+      A funder may be marked as funding an organisation without a published amount.</span>
+    </div></div>
+    ${total?`<div class="stats" style="margin-bottom:14px"><div class="stat">
+      <span class="lab">Published total, 2020</span><div class="v">${esc(eurShort(total))}</div>
+      <div class="d">across ${named.length} funder${named.length===1?'':'s'}</div></div></div>`:''}
+    <div class="scrollx"><table class="plain">
+      <thead><tr><th>Funder / programme</th><th class="r">2020</th></tr></thead>
+      <tbody>${funders.map(fn=>{
+        const r = rec[fn];
+        const progs = Object.keys(r.p||{});
+        const label = DB.meta.funders.find(x=>x.name===fn);
+        let out = `<tr class="sub0"><td><b>${esc(fn)}</b>${!r.total&&r.funded?' <span class="bdg wn">funded, amount not published</span>':''}</td>
+          <td class="r"><b>${r.total?esc(eur(r.total)):'<span class="mut">—</span>'}</b></td></tr>`;
+        for(const p of progs){
+          const pl = label && label.programmes.find(x=>x.acr===p);
+          out += `<tr><td class="ind1">${esc(pl?pl.label:p)}</td><td class="r">${esc(eur(r.p[p]))}</td></tr>`;
+        }
+        return out;
+      }).join('')}</tbody></table></div></div>`;
+}
+
+/* re-draw charts on resize, scoped to the live view */
+let RESIZERS = [];
+function addResize(fn){ RESIZERS.push(fn); }
+function clearResize(){ RESIZERS = []; }
+let rzT=null;
+window.addEventListener('resize',()=>{
+  clearTimeout(rzT);
+  rzT = setTimeout(()=>RESIZERS.forEach(f=>{ try{f();}catch(e){} }),180);
+});
+</script>
+<script>
+/* ================================================================
+   Analyse — sector, county and year aggregates over the whole set.
+   One filter row scopes every chart on the page.
+   ================================================================ */
+'use strict';
+
+const A = { year:'latest', measure:'inc', sectors:new Set() };
+
+function aggregate(measure, year, groupBy){
+  // groupBy: 'sec' | 'cty' | 'gf'
+  const col = C()[groupBy];
+  const sums = new Map(), counts = new Map();
+  for(let k=0;k<DB.core.n;k++){
+    if(A.sectors.size && !A.sectors.has(C().sec[k])) continue;
+    const g = col[k]; if(g<0) continue;
+    const v = measureVal(k, measure, year);
+    if(v==null) continue;
+    sums.set(g,(sums.get(g)||0)+Math.abs(v));
+    counts.set(g,(counts.get(g)||0)+1);
+  }
+  return {sums,counts};
+}
+function yearTotals(measure, sectorIdx){
+  return DB.years.map(y=>{
+    let s=0, n=0;
+    for(let k=0;k<DB.core.n;k++){
+      if(sectorIdx!=null && C().sec[k]!==sectorIdx) continue;
+      if(sectorIdx==null && A.sectors.size && !A.sectors.has(C().sec[k])) continue;
+      const v = finVal(k, measure, y);
+      if(v!=null){ s+=Math.abs(v); n++; }
+    }
+    return {total:s, n};
+  });
+}
+
+function viewAnalyse(){
+  const m = document.getElementById('main');
+  if(!DB.finReady){
+    m.innerHTML = `<div class="sect"><h2>Analyse</h2>
+      <p class="sub"><span class="spin"></span> Loading the year-by-year figures…</p></div>`;
+    return;
+  }
+  clearResize();
+  const fmtFor = mk => MBY[mk].fmt===int ? int : eurShort;
+  const measOpts = ['inc','exp','gov','pay','emp','na','fr','don','grants']
+    .map(k=>`<option value="${k}"${A.measure===k?' selected':''}>${esc(MBY[k].label)}</option>`).join('');
+  const yearOpts = ['latest','any'].concat(DB.years.map(String))
+    .map(y=>`<option value="${y}"${A.year===y?' selected':''}>${y==='latest'?'Latest filed year':y==='any'?'Highest in any year':'FY '+y}</option>`).join('');
+
+  m.innerHTML = `
+  <div class="sect">
+    <h2>Analyse the sector</h2>
+    <p class="sub">Totals are sums of what each organisation actually filed. Because accounts coverage
+      is uneven — and thins sharply after 2019 — these are totals <i>of the dataset</i>, not of the
+      Irish nonprofit sector. The Coverage view sets out what is missing.</p>
+    <div class="toolbar" style="padding:3px 0 16px">
+      <select id="am" class="tbtn" style="padding:6px 9px">${measOpts}</select>
+      <select id="ay" class="tbtn" style="padding:6px 9px">${yearOpts}</select>
+      <span id="asel" class="pills"></span>
+      <span class="resn" id="ascope" style="margin-left:auto"></span>
+    </div>
+    <div class="grid" style="grid-template-columns:1fr 1fr" id="agrid">
+      <div class="card" id="c-sector" style="grid-column:1/-1"></div>
+      <div class="card" id="c-trend" style="grid-column:1/-1"></div>
+      <div class="card" id="c-county"></div>
+      <div class="card" id="c-form"></div>
+    </div>
+  </div>`;
+  if(window.innerWidth < 900) document.getElementById('agrid').style.gridTemplateColumns='1fr';
+
+  const am=document.getElementById('am'), ay=document.getElementById('ay');
+  am.addEventListener('change',()=>{ A.measure=am.value; drawAnalyse(); });
+  ay.addEventListener('change',()=>{ A.year=ay.value; drawAnalyse(); });
+  drawAnalyse();
+}
+
+function drawAnalyse(){
+  const mk = A.measure, yr = A.year;
+  const fmt = MBY[mk].fmt===int ? int : eurShort;
+  const fmtFull = MBY[mk].fmt===int ? int : eur;
+  const label = MBY[mk].label;
+
+  /* scope note + sector chips */
+  const sel = document.getElementById('asel');
+  sel.innerHTML = [...A.sectors].map(i=>
+    `<span class="pill">${esc(DB.meta.sectors[i].name)}<button data-i="${i}">×</button></span>`).join('');
+  sel.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{
+    A.sectors.delete(+b.dataset.i); drawAnalyse();
+  }));
+
+  /* ---- by sector ---- */
+  const bySec = aggregate(mk, yr, 'sec');
+  const secRows = DB.meta.sectors.map((s,i)=>({
+      label:s.name, value:bySec.sums.get(i)||0, n:bySec.counts.get(i)||0, i
+    })).filter(r=>r.value>0).sort((a,b)=>b.value-a.value);
+  const grand = secRows.reduce((s,r)=>s+r.value,0);
+  document.getElementById('ascope').innerHTML =
+    `<b>${esc(fmt(grand))}</b> <span class="mut">${esc(label.toLowerCase())}, ${
+      yr==='latest'?'latest filed year':yr==='any'?'best year each':'FY '+yr}</span>`;
+
+  const secCard = document.getElementById('c-sector');
+  secCard.innerHTML = `
+    <div class="cardhead"><div class="grow">
+      <h3>${esc(label)} by sector</h3>
+      <span class="mut" style="font-size:12px">Click a sector to narrow every chart on this page.</span>
+    </div><div class="viewtog" id="vt1"><button data-v="chart" aria-pressed="true">Chart</button><button data-v="table" aria-pressed="false">Table</button></div></div>
+    <div id="b-sector"></div>
+    <div id="t-sector" hidden></div>`;
+  rankedBars(document.getElementById('b-sector'), secRows.map(r=>({
+    label:r.label, value:r.value,
+    colour: A.sectors.has(r.i) ? 'var(--s2)' : 'var(--s1)',
+    onClick:()=>{ A.sectors.has(r.i)?A.sectors.delete(r.i):A.sectors.add(r.i); drawAnalyse(); }
+  })), {fmt});
+  document.getElementById('t-sector').innerHTML = `<table class="plain">
+    <thead><tr><th>Sector</th><th class="r">${esc(label)}</th><th class="r">Share</th><th class="r">Organisations</th><th class="r">Average</th></tr></thead>
+    <tbody>${secRows.map(r=>`<tr><td>${esc(r.label)}</td><td class="r">${esc(fmtFull(r.value))}</td>
+      <td class="r">${grand?((r.value/grand)*100).toFixed(1)+'%':'—'}</td>
+      <td class="r">${NF.format(r.n)}</td><td class="r">${esc(fmtFull(r.n?r.value/r.n:null))}</td></tr>`).join('')}
+      <tr class="tot"><td>Total</td><td class="r">${esc(fmtFull(grand))}</td><td class="r">100%</td>
+      <td class="r">${NF.format(secRows.reduce((s,r)=>s+r.n,0))}</td><td class="r"></td></tr></tbody></table>`;
+  wireToggle('vt1','b-sector','t-sector');
+
+  /* ---- trend over the years ---- */
+  const trend = yearTotals(mk, null);
+  const cats = DB.years.map(String);
+  const tCard = document.getElementById('c-trend');
+  tCard.innerHTML = `
+    <div class="cardhead"><div class="grow">
+      <h3>${esc(label)} by financial year</h3>
+      <span class="mut" style="font-size:12px">The fall after 2019 is thinning coverage, not a collapse in activity —
+      ${NF.format(trend[trend.length-1].n)} organisations report a figure for ${DB.years[DB.years.length-1]}
+      against ${NF.format(Math.max(...trend.map(t=>t.n)))} at the peak.</span>
+    </div><div class="viewtog" id="vt2"><button data-v="chart" aria-pressed="true">Chart</button><button data-v="table" aria-pressed="false">Table</button></div></div>
+    <div id="b-trend"></div><div id="t-trend" hidden></div>`;
+  const drawTrend = ()=> lineChart(document.getElementById('b-trend'), cats,
+    [{label:label, colour:'var(--s1)', values:trend.map(t=>t.total||null)}],
+    {fmt, fmtFull, aria:label+' by financial year', plotH:190});
+  drawTrend(); addResize(drawTrend);
+  document.getElementById('t-trend').innerHTML = `<table class="plain">
+    <thead><tr><th>Year</th><th class="r">${esc(label)}</th><th class="r">Organisations reporting</th><th class="r">Average</th></tr></thead>
+    <tbody>${DB.years.map((y,i)=>`<tr><td class="num">${y}</td>
+      <td class="r">${esc(fmtFull(trend[i].total))}</td><td class="r">${NF.format(trend[i].n)}</td>
+      <td class="r">${esc(fmtFull(trend[i].n?trend[i].total/trend[i].n:null))}</td></tr>`).join('')}</tbody></table>`;
+  wireToggle('vt2','b-trend','t-trend',drawTrend);
+
+  /* ---- county + legal form ---- */
+  const byCty = aggregate(mk, yr, 'cty');
+  const ctyRows = DB.meta.counties.map((c,i)=>({label:titleise(c), value:byCty.sums.get(i)||0, n:byCty.counts.get(i)||0, i}))
+    .filter(r=>r.value>0).sort((a,b)=>b.value-a.value);
+  document.getElementById('c-county').innerHTML = `
+    <div class="cardhead"><div class="grow"><h3>Top counties</h3>
+      <span class="mut" style="font-size:12px">By registered address</span></div></div>
+    <div id="b-cty"></div>
+    <details style="margin-top:12px"><summary class="more" style="cursor:pointer">All ${ctyRows.length} counties as a table</summary>
+      <table class="plain" style="margin-top:9px"><thead><tr><th>County</th><th class="r">${esc(label)}</th><th class="r">Orgs</th></tr></thead>
+      <tbody>${ctyRows.map(r=>`<tr><td>${esc(r.label)}</td><td class="r">${esc(fmtFull(r.value))}</td><td class="r">${NF.format(r.n)}</td></tr>`).join('')}</tbody></table></details>`;
+  rankedBars(document.getElementById('b-cty'), ctyRows.slice(0,12), {fmt});
+
+  const byGf = aggregate(mk, yr, 'gf');
+  const gfRows = DB.meta.govForms.map((g,i)=>({label:g, value:byGf.sums.get(i)||0, n:byGf.counts.get(i)||0}))
+    .filter(r=>r.value>0).sort((a,b)=>b.value-a.value);
+  document.getElementById('c-form').innerHTML = `
+    <div class="cardhead"><div class="grow"><h3>By legal form</h3>
+      <span class="mut" style="font-size:12px">As recorded in the 2024 directory</span></div></div>
+    <div id="b-gf"></div>
+    <details style="margin-top:12px"><summary class="more" style="cursor:pointer">All ${gfRows.length} forms as a table</summary>
+      <table class="plain" style="margin-top:9px"><thead><tr><th>Legal form</th><th class="r">${esc(label)}</th><th class="r">Orgs</th></tr></thead>
+      <tbody>${gfRows.map(r=>`<tr><td>${esc(r.label)}</td><td class="r">${esc(fmtFull(r.value))}</td><td class="r">${NF.format(r.n)}</td></tr>`).join('')}</tbody></table></details>`;
+  rankedBars(document.getElementById('b-gf'), gfRows.slice(0,10), {fmt, colour:'var(--s3)'});
+}
+
+function wireToggle(togId, chartId, tableId, redraw){
+  document.querySelectorAll('#'+togId+' button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      const chart = b.dataset.v==='chart';
+      document.querySelectorAll('#'+togId+' button').forEach(x=>
+        x.setAttribute('aria-pressed', String(x.dataset.v===b.dataset.v)));
+      document.getElementById(chartId).hidden = !chart;
+      document.getElementById(tableId).hidden = chart;
+      if(chart && redraw) redraw();
+    });
+  });
+}
+
+/* ================================================================
+   Funding — the 2020 Who Funds What directory
+   ================================================================ */
+function viewFunding(){
+  const m = document.getElementById('main');
+  if(!DB.funding){
+    m.innerHTML = `<div class="sect"><h2>State funding</h2>
+      <p class="sub"><span class="spin"></span> Loading the funding directory…</p></div>`;
+    return;
+  }
+  clearResize();
+  const funders = DB.meta.funders.map(f=>{
+    let total=0, nOrg=0, nAmt=0;
+    const progs = new Map();
+    for(const id in DB.funding){
+      const r = DB.funding[id][f.name]; if(!r) continue;
+      nOrg++;
+      if(r.total){ total+=r.total; nAmt++; }
+      for(const p in (r.p||{})) progs.set(p,(progs.get(p)||0)+r.p[p]);
+    }
+    return {name:f.name, short:f.short||f.name, total, nOrg, nAmt, progs, def:f};
+  }).filter(f=>f.nOrg>0).sort((a,b)=>b.total-a.total);
+
+  const grand = funders.reduce((s,f)=>s+f.total,0);
+  const nOrgs = Object.keys(DB.funding).length;
+
+  m.innerHTML = `
+  <div class="sect">
+    <h2>Who funds what, 2020</h2>
+    <p class="sub">The Benefacts <i>Who Funds What</i> directory mapped State funding programmes to the
+      organisations receiving them. It was published as a beta covering ten funders for a single year,
+      so it is a sample of State funding rather than a complete account of it.</p>
+    <div class="stats" style="margin-bottom:18px">
+      <div class="stat"><span class="lab">Published funding</span><div class="v">${esc(eurShort(grand))}</div><div class="d">across ${funders.length} funders</div></div>
+      <div class="stat"><span class="lab">Organisations</span><div class="v">${NF.format(nOrgs)}</div><div class="d">named in the directory</div></div>
+      <div class="stat"><span class="lab">Programmes</span><div class="v">${NF.format(DB.meta.funders.reduce((s,f)=>s+f.programmes.length,0))}</div><div class="d">funding streams mapped</div></div>
+      <div class="stat"><span class="lab">Share of register</span><div class="v">${((nOrgs/DB.core.n)*100).toFixed(1)}%</div><div class="d">of all organisations here</div></div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="cardhead"><div class="grow"><h3>Funding by body</h3>
+        <span class="mut" style="font-size:12px">Published amounts only. Some bodies flag an organisation as funded without stating a figure.</span>
+      </div><div class="viewtog" id="vt3"><button data-v="chart" aria-pressed="true">Chart</button><button data-v="table" aria-pressed="false">Table</button></div></div>
+      <div id="b-fund"></div><div id="t-fund" hidden></div>
+    </div>
+    <div class="card">
+      <span class="lab">Programmes</span>
+      <div class="scrollx" style="margin-top:10px"><table class="plain">
+        <thead><tr><th>Funder</th><th>Programme</th><th class="r">2020 total</th><th class="r">Recipients</th></tr></thead>
+        <tbody id="progbody"></tbody></table></div>
+    </div>
+  </div>`;
+
+  rankedBars(document.getElementById('b-fund'),
+    funders.filter(f=>f.total>0).map(f=>({label:f.short, value:f.total})), {fmt:eurShort});
+  document.getElementById('t-fund').innerHTML = `<table class="plain">
+    <thead><tr><th>Funder</th><th class="r">Published 2020</th><th class="r">Organisations funded</th><th class="r">With an amount</th></tr></thead>
+    <tbody>${funders.map(f=>`<tr><td>${esc(f.name)}</td><td class="r">${f.total?esc(eur(f.total)):'<span class="mut">none published</span>'}</td>
+      <td class="r">${NF.format(f.nOrg)}</td><td class="r">${NF.format(f.nAmt)}</td></tr>`).join('')}
+      <tr class="tot"><td>Total</td><td class="r">${esc(eur(grand))}</td><td class="r"></td><td class="r"></td></tr></tbody></table>`;
+  wireToggle('vt3','b-fund','t-fund');
+
+  // programme rows, with recipient counts
+  const rows = [];
+  for(const f of funders){
+    for(const p of f.def.programmes){
+      let tot=0,n=0;
+      for(const id in DB.funding){
+        const r = DB.funding[id][f.name];
+        if(r && r.p && r.p[p.acr]){ tot+=r.p[p.acr]; n++; }
+      }
+      if(n) rows.push({f:f.name, fshort:f.short, p:p.label, tot, n});
+    }
+  }
+  rows.sort((a,b)=>b.tot-a.tot);
+  document.getElementById('progbody').innerHTML = rows.map(r=>
+    `<tr><td class="mut">${esc(r.fshort)}</td><td>${esc(r.p)}</td>
+     <td class="r">${esc(eur(r.tot))}</td><td class="r">${NF.format(r.n)}</td></tr>`).join('');
+}
+</script>
+<script>
+/* ================================================================
+   Coverage — what the dataset holds and what it does not.
+   This view exists because a register that hides its gaps cannot
+   be trusted; every number here is computed from the files.
+   ================================================================ */
+'use strict';
+
+function viewCoverage(){
+  const m = document.getElementById('main');
+  const s = DB.stats;
+  clearResize();
+
+  m.innerHTML = `
+  <div class="sect">
+    <h2>Coverage and known gaps</h2>
+    <p class="sub">Benefacts closed in 2022, so this data has a fixed end. Everything below is measured
+      from the six archived files, not asserted. These are the gaps a refresh has to close.</p>
+
+    <div class="stats" style="margin-bottom:20px">
+      <div class="stat"><span class="lab">Organisations</span><div class="v">${NF.format(s.orgs)}</div>
+        <div class="d">union of all three directories</div></div>
+      <div class="stat"><span class="lab">In the 2024 directory</span><div class="v">${NF.format(s.in2023)}</div>
+        <div class="d">${((s.in2023/s.orgs)*100).toFixed(0)}% of the union</div></div>
+      <div class="stat"><span class="lab">With any accounts</span><div class="v">${NF.format(s.withAccounts)}</div>
+        <div class="d">${((s.withAccounts/s.orgs)*100).toFixed(0)}% of organisations</div></div>
+      <div class="stat"><span class="lab">Financial years</span><div class="v">2013–2020</div>
+        <div class="d">2021 holds 16 filings only</div></div>
+      <div class="stat"><span class="lab">State funding</span><div class="v">2020</div>
+        <div class="d">one year, ten funders</div></div>
+    </div>
+
+    <div class="grid" style="grid-template-columns:1fr 1fr" id="cgrid">
+      <div class="card" id="c-churn"></div>
+      <div class="card" id="c-accyear"></div>
+      <div class="card" style="grid-column:1/-1" id="c-secacc"></div>
+      <div class="card" style="grid-column:1/-1" id="c-fields"></div>
+      <div class="card" style="grid-column:1/-1" id="c-defects"></div>
+    </div>
+  </div>`;
+  if(window.innerWidth < 900) document.getElementById('cgrid').style.gridTemplateColumns='1fr';
+
+  /* ---- register churn ---- */
+  document.getElementById('c-churn').innerHTML = `
+    <div class="cardhead"><div class="grow"><h3>Register churn</h3>
+      <span class="mut" style="font-size:12px">How the published directories differ from one another</span></div></div>
+    <table class="plain">
+      <tbody>
+        <tr><td>In the 2015–2021 directory</td><td class="r">${NF.format(s.inLegacy)}</td></tr>
+        <tr><td>In the 2022 directory</td><td class="r">${NF.format(s.in2022)}</td></tr>
+        <tr><td>In the 2024 directory</td><td class="r">${NF.format(s.in2023)}</td></tr>
+        <tr class="tot"><td>Appeared since 2015–2021</td><td class="r">+${NF.format(s.newIn2023)}</td></tr>
+        <tr class="tot"><td>Gone by the 2024 directory</td><td class="r">−${NF.format(s.legacyOnly)}</td></tr>
+        <tr><td>Accounts held but in no directory</td><td class="r">${NF.format(s.noDirectory)}</td></tr>
+      </tbody></table>
+    <p class="mut" style="font-size:11.5px;margin:11px 0 0">
+      A disappearance is not necessarily a dissolution: an organisation can leave the directory because
+      it was reclassified, merged, or fell out of the registers Benefacts drew on. Each of the
+      ${NF.format(s.legacyOnly)} needs checking against the Companies Registration Office and the
+      Charities Regulator before it is called closed.</p>
+    <button class="tbtn" style="margin-top:12px" id="seechurn">Show organisations no longer in the register →</button>`;
+  document.getElementById('seechurn').addEventListener('click',()=>{
+    Q.text=''; Q.status.clear(); Q.status.add('dissolved'); Q.sort='linc'; Q.dir=-1;
+    location.hash='explore';
+  });
+
+  /* ---- accounts per year ---- */
+  const accYear = document.getElementById('c-accyear');
+  if(DB.finReady){
+    const counts = DB.years.map(y=>{
+      let n=0;
+      const f=DB.fin.cols;
+      for(let r=0;r<DB.fin.n;r++) if(f.yr[r]===y) n++;
+      return n;
+    });
+    accYear.innerHTML = `
+      <div class="cardhead"><div class="grow"><h3>Filings per financial year</h3>
+        <span class="mut" style="font-size:12px">Sets of accounts in the dataset, by year</span></div>
+        <div class="viewtog" id="vt4"><button data-v="chart" aria-pressed="true">Chart</button><button data-v="table" aria-pressed="false">Table</button></div></div>
+      <div id="b-accyear"></div><div id="t-accyear" hidden></div>`;
+    const draw = ()=> groupedBars(document.getElementById('b-accyear'), DB.years.map(String),
+      [{label:'Sets of accounts', colour:'var(--s1)', values:counts}],
+      {fmt:int, fmtFull:int, aria:'Sets of accounts by financial year', plotH:168, padL:46});
+    draw(); addResize(draw);
+    document.getElementById('t-accyear').innerHTML = `<table class="plain">
+      <thead><tr><th>Year</th><th class="r">Sets of accounts</th><th class="r">Share of organisations with accounts</th></tr></thead>
+      <tbody>${DB.years.map((y,i)=>`<tr><td class="num">${y}</td><td class="r">${NF.format(counts[i])}</td>
+        <td class="r">${((counts[i]/DB.stats.withAccounts)*100).toFixed(0)}%</td></tr>`).join('')}</tbody></table>`;
+    wireToggle('vt4','b-accyear','t-accyear',draw);
+  }else{
+    accYear.innerHTML = `<span class="lab">Filings per financial year</span>
+      <div class="mut" style="margin-top:10px;font-size:12.5px"><span class="spin"></span> loading…</div>`;
+  }
+
+  /* ---- accounts coverage by sector ---- */
+  const bySec = DB.meta.sectors.map((sec,i)=>{
+    let tot=0, acc=0;
+    for(let k=0;k<DB.core.n;k++){
+      if(C().sec[k]!==i) continue;
+      tot++; if(inReg(k,R_ACC)) acc++;
+    }
+    return {name:sec.name, tot, acc, pct:tot?acc/tot:0, i};
+  }).filter(r=>r.tot>0).sort((a,b)=>a.pct-b.pct);
+
+  document.getElementById('c-secacc').innerHTML = `
+    <div class="cardhead"><div class="grow"><h3>Accounts coverage by sector</h3>
+      <span class="mut" style="font-size:12px">Share of each sector's organisations with at least one set of
+      accounts in the dataset. Worst coverage first — these are where a refresh adds the most.</span></div></div>
+    <div id="b-secacc"></div>
+    <table class="plain" style="margin-top:14px">
+      <thead><tr><th>Sector</th><th class="r">Organisations</th><th class="r">With accounts</th><th class="r">Coverage</th><th class="r">Missing</th></tr></thead>
+      <tbody>${bySec.map(r=>`<tr><td>${esc(r.name)}</td><td class="r">${NF.format(r.tot)}</td>
+        <td class="r">${NF.format(r.acc)}</td>
+        <td class="r">${(r.pct*100).toFixed(0)}%</td>
+        <td class="r">${NF.format(r.tot-r.acc)}</td></tr>`).join('')}
+        <tr class="tot"><td>All sectors</td><td class="r">${NF.format(bySec.reduce((s,r)=>s+r.tot,0))}</td>
+        <td class="r">${NF.format(bySec.reduce((s,r)=>s+r.acc,0))}</td>
+        <td class="r">${((bySec.reduce((s,r)=>s+r.acc,0)/bySec.reduce((s,r)=>s+r.tot,0))*100).toFixed(0)}%</td>
+        <td class="r">${NF.format(bySec.reduce((s,r)=>s+(r.tot-r.acc),0))}</td></tr>
+      </tbody></table>`;
+  rankedBars(document.getElementById('b-secacc'),
+    bySec.map(r=>({label:r.name, value:Math.round(r.pct*100)})),
+    {fmt:v=>v+'%'});
+
+  /* ---- field completeness ---- */
+  const fieldHost = document.getElementById('c-fields');
+  if(DB.finReady){
+    const f = DB.fin.cols, n = DB.fin.n;
+    const checks = [
+      ['inc','Total income'],['exp','Total expenditure'],['na','Net assets'],
+      ['fr','Funds & reserves'],['emp','Average employees'],['pay','Payroll'],
+      ['gov','Government funding'],['ngov','Non-government funding'],
+      ['don','Donations & legacies'],['grants','Grants'],['kmp','Key management pay'],
+      ['vol','Volunteer numbers']
+    ].map(([k,label])=>{
+      let pop=0;
+      for(let r=0;r<n;r++) if(f[k][r]!=null) pop++;
+      return {label, pop, pct:pop/n};
+    }).sort((a,b)=>b.pct-a.pct);
+
+    fieldHost.innerHTML = `
+      <div class="cardhead"><div class="grow"><h3>Field completeness</h3>
+        <span class="mut" style="font-size:12px">Share of the ${NF.format(n)} sets of accounts in which each
+        figure is actually stated. Small companies may file abridged accounts, which legitimately omit most of this.</span></div></div>
+      <div id="b-fields"></div>
+      <table class="plain" style="margin-top:14px">
+        <thead><tr><th>Figure</th><th class="r">Stated in</th><th class="r">Completeness</th><th class="r">Missing</th></tr></thead>
+        <tbody>${checks.map(c=>`<tr><td>${esc(c.label)}</td><td class="r">${NF.format(c.pop)}</td>
+          <td class="r">${(c.pct*100).toFixed(1)}%</td><td class="r">${NF.format(n-c.pop)}</td></tr>`).join('')}</tbody></table>`;
+    rankedBars(document.getElementById('b-fields'),
+      checks.map(c=>({label:c.label, value:Math.round(c.pct*100)})),
+      {fmt:v=>v+'%'});
+  }else{
+    fieldHost.innerHTML = `<span class="lab">Field completeness</span>
+      <div class="mut" style="margin-top:10px;font-size:12.5px"><span class="spin"></span> loading…</div>`;
+  }
+
+  /* ---- defects found while building ---- */
+  document.getElementById('c-defects').innerHTML = `
+    <div class="cardhead"><div class="grow"><h3>Defects found in the source files</h3>
+      <span class="mut" style="font-size:12px">Logged while loading the archive, so a refresh can allow for them</span></div></div>
+    <table class="plain">
+      <thead><tr><th>Finding</th><th style="min-width:280px">What it means for a refresh</th></tr></thead>
+      <tbody>
+        <tr><td><b>Financial data effectively ends in 2020</b></td>
+          <td>The file is titled 2015–2021 but holds 2013–2020 in substance: 2021 carries 16 sets of
+          accounts against ${NF.format(Math.max(...(DB.finReady?DB.years.map(y=>{let n=0;const f=DB.fin.cols;for(let r=0;r<DB.fin.n;r++)if(f.yr[r]===y)n++;return n;}):[0])))} at the peak.
+          Four years of accounts, not one, have to be rebuilt from scratch.</td></tr>
+        <tr><td><b>${NF.format(DB.stats.noDirectory)} organisations have accounts but appear in no directory</b></td>
+          <td>They are carried here from the financial file alone, with no county, address or legal form.
+          Any identifier match has to work from the financial file as well as the directories.</td></tr>
+        <tr><td><b>${NF.format(DB.stats.orgs - DB.stats.withAccounts)} organisations have no accounts at all</b></td>
+          <td>Over half the register. The top-500-by-income target is therefore a target over the
+          ${NF.format(DB.stats.withAccounts)} with a known income, not over the whole register.</td></tr>
+        <tr><td><b>${DB.stats.rowAnomalies} rows in the governance file are malformed</b></td>
+          <td>Purpose text containing newlines splits its row across three lines, leaving fragments
+          (${(DB.stats.anomalySamples||[]).map(a=>'<code>'+esc(a)+'</code>').join(', ')}) in the id column.
+          Any loader must reject non-numeric ids rather than trust the row count.</td></tr>
+        <tr><td><b>Identifier formats are not uniform</b></td>
+          <td>Friendly-society numbers appear as <code>5474 R</code> and Revenue sports numbers as
+          <code>GS 139</code>. Parsing identifiers as integers silently drops them.</td></tr>
+        <tr><td><b>Expenditure is signed negative</b></td>
+          <td>Expenditure, creditors and other outflows are negative in the source. Summing income and
+          expenditure without checking signs produces a surplus where there is a deficit.</td></tr>
+        <tr><td><b>Registered names are upper-cased</b></td>
+          <td>Names are stored in capitals. This front end title-cases them for reading and keeps the
+          registered form for search and export, but the archive holds no mixed-case original.</td></tr>
+      </tbody></table>`;
+}
+
+/* ================================================================
+   About — sources, licence, method
+   ================================================================ */
+function viewAbout(){
+  clearResize();
+  const s = DB.stats;
+  document.getElementById('main').innerHTML = `
+  <div class="sect" style="max-width:76ch">
+    <h2>About Méid</h2>
+    <p class="sub">A working interface over the archived Benefacts open data, built to show what a
+      refreshed public register of Irish nonprofits could do.</p>
+
+    <h3 style="margin:24px 0 7px;font-size:14px">The name</h3>
+    <p class="ink2" style="font-size:13.5px;line-height:1.65">
+      <i>Méid</i> is the Irish for amount or extent &mdash; the word inside the question
+      <i>c&eacute; mh&eacute;ad?</i>, how much. It is the question this register exists to answer:
+      how much an organisation raised, how much it spent, how much of it came from the State.
+      The project is independent of Benefacts, which closed in 2022, and uses a name of its own.
+    </p>
+
+    <h3 style="margin:24px 0 7px;font-size:14px">What it covers</h3>
+    <p class="ink2" style="font-size:13.5px;line-height:1.65">
+      ${NF.format(s.orgs)} organisations, assembled as the union of the 2015–2021, 2022 and 2024
+      Benefacts directories, plus ${NF.format(s.noDirectory)} that appear only in the financial file.
+      ${NF.format(s.withAccounts)} have at least one set of accounts, giving 70,476 organisation-years
+      across 182 financial fields. ${NF.format(s.withGovernance)} have a stated legal purpose or
+      charitable objects. ${NF.format(s.withStateFunding)} appear in the 2020 <i>Who Funds What</i> directory.
+    </p>
+
+    <h3 style="margin:24px 0 7px;font-size:14px">Source files</h3>
+    <table class="plain">
+      <thead><tr><th>File</th><th class="r">Rows used</th><th>Used for</th></tr></thead>
+      <tbody>
+        <tr><td>Directory of Irish Nonprofits 2015–2021</td><td class="r">${NF.format(s.inLegacy)}</td><td>Legacy register, sector, county, identifiers, website</td></tr>
+        <tr><td>Directory of Irish Nonprofits 2022</td><td class="r">${NF.format(s.in2022)}</td><td>Register membership in 2022</td></tr>
+        <tr><td>Irish Nonprofits Directory 2024</td><td class="r">${NF.format(s.in2023)}</td><td>Current register, legal form, address, alternative names</td></tr>
+        <tr><td>Financial dataset 2015–2021</td><td class="r">70,476</td><td>All financial figures and provenance</td></tr>
+        <tr><td>Governance dataset 2015–2021</td><td class="r">${NF.format(s.withGovernance)}</td><td>Legal purpose and charitable objects</td></tr>
+        <tr><td>Who Funds What 2020</td><td class="r">${NF.format(s.withStateFunding)}</td><td>State funding by body and programme</td></tr>
+      </tbody></table>
+
+    <h3 style="margin:24px 0 7px;font-size:14px">Method</h3>
+    <p class="ink2" style="font-size:13.5px;line-height:1.65">
+      Organisations are joined on the Benefacts ID across all six files. The most recent directory wins
+      where fields conflict; older directories and the governance and financial files backfill anything
+      missing. Non-numeric IDs are rejected. Registration numbers are kept as published rather than
+      parsed as integers. Expenditure is stored negative in the source and is shown here as a positive
+      amount, with the sign convention stated wherever a figure appears. No figure is imputed,
+      interpolated or estimated: a blank means the source is blank.
+    </p>
+
+    <h3 style="margin:24px 0 7px;font-size:14px">Licence and attribution</h3>
+    <p class="ink2" style="font-size:13.5px;line-height:1.65">
+      The underlying data is the Benefacts Database of Irish Nonprofits, archived by the Irish Social
+      Science Data Archive and published under a Creative Commons Attribution 4.0 licence. Credit is
+      due to Benefacts and to ISSDA. This interface is a prototype and is not affiliated with either.
+    </p>
+
+    <div class="note" style="margin-top:20px">
+      <b>This is a historic snapshot.</b> Benefacts closed in 2022 after its State funding was
+      withdrawn. Nothing here is current: the register ends in 2024 and the financial data ends in
+      2020. For the present status of an organisation, check the
+      <a href="https://www.charitiesregulator.ie/" target="_blank" rel="noopener noreferrer">Charities Regulator</a>
+      and the <a href="https://core.cro.ie/" target="_blank" rel="noopener noreferrer">Companies Registration Office</a> directly.
+    </div>
+
+    <div class="foot">
+      <b style="color:var(--ink)">Sources</b><br>
+      <a href="https://www.ucd.ie/issda/data/benefacts" target="_blank" rel="noopener noreferrer">ISSDA — Benefacts Database of Irish Nonprofits 2015–2021</a><br>
+      <a href="https://www.charitiesregulator.ie/" target="_blank" rel="noopener noreferrer">Charities Regulator</a> ·
+      <a href="https://core.cro.ie/" target="_blank" rel="noopener noreferrer">Companies Registration Office</a>
+    </div>
+  </div>`;
+}
+</script>
+<script>
+/* ================================================================
+   Chrome and routing. Only plain #name hashes are used, plus
+   #org-<id> for a profile.
+   ================================================================ */
+'use strict';
+
+const VIEWS = [
+  {id:'explore',  label:'Register'},
+  {id:'analyse',  label:'Analyse'},
+  {id:'funding',  label:'State funding'},
+  {id:'coverage', label:'Coverage'},
+  {id:'about',    label:'About'},
+];
+
+const SUN = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>';
+const MOON = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 14.5A8.5 8.5 0 019.5 4a8.5 8.5 0 1010.5 10.5z"/></svg>';
+
+function initChrome(){
+  const nav = document.getElementById('nav');
+  nav.innerHTML = VIEWS.map(v=>`<button data-v="${v.id}">${esc(v.label)}</button>`).join('');
+  nav.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click',()=>{ location.hash = b.dataset.v; });
+  });
+
+  const tb = document.getElementById('themebtn');
+  const stored = (()=>{ try{ return localStorage.getItem('b2theme'); }catch(e){ return null; } })();
+  if(stored) document.documentElement.dataset.theme = stored;
+  const paint = () => {
+    const dark = document.documentElement.dataset.theme === 'dark' ||
+      (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme:dark)').matches);
+    tb.innerHTML = dark ? SUN : MOON;
+  };
+  paint();
+  tb.addEventListener('click',()=>{
+    const dark = document.documentElement.dataset.theme === 'dark' ||
+      (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme:dark)').matches);
+    document.documentElement.dataset.theme = dark ? 'light' : 'dark';
+    try{ localStorage.setItem('b2theme', document.documentElement.dataset.theme); }catch(e){}
+    paint();
+    RESIZERS.forEach(f=>{ try{f();}catch(e){} });   // charts re-read their tokens
+  });
+
+  window.addEventListener('hashchange', route);
+  document.addEventListener('keydown', ev=>{
+    if(ev.key==='/' && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)){
+      const q = document.getElementById('q');
+      if(q){ ev.preventDefault(); q.focus(); q.select(); }
+      else { location.hash='explore'; setTimeout(()=>{ const f=document.getElementById('q'); if(f) f.focus(); },60); }
+    }
+    if(ev.key==='Escape'){ const q=document.getElementById('q'); if(q && document.activeElement===q){ q.blur(); } }
+  });
+}
+
+function route(){
+  if(!DB.ready) return;
+  const h = (location.hash||'').replace(/^#/,'') || 'explore';
+  clearResize();
+  if(h.startsWith('org-')){
+    setNav(null);
+    viewOrg(h.slice(4));
+    window.scrollTo(0,0);
+    return;
+  }
+  const view = VIEWS.find(v=>v.id===h) ? h : 'explore';
+  setNav(view);
+  ({explore:viewExplore, analyse:viewAnalyse, funding:viewFunding,
+    coverage:viewCoverage, about:viewAbout})[view]();
+  window.scrollTo(0,0);
+}
+function setNav(active){
+  document.querySelectorAll('#nav button').forEach(b=>{
+    if(b.dataset.v===active) b.setAttribute('aria-current','page');
+    else b.removeAttribute('aria-current');
+  });
+}
+
+/* When a background file lands, refresh whatever is on screen so the
+   new columns appear without the user doing anything. */
+function onDataArrived(what){
+  const h = (location.hash||'').replace(/^#/,'') || 'explore';
+  if(h.startsWith('org-')){
+    if(what==='ext' || what==='fin' || what==='funding') viewOrg(h.slice(4));
+    return;
+  }
+  if(h==='explore' || h==='' ){ if(document.getElementById('scroller')) refreshExplore(); return; }
+  if(h==='analyse' && what==='fin') viewAnalyse();
+  if(h==='funding' && what==='funding') viewFunding();
+  if(h==='coverage' && what==='fin') viewCoverage();
+}
+
+boot();
+</script>
+</body>
+</html>
