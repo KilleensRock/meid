@@ -1,0 +1,14 @@
+# Méid — the public record of Irish nonprofits
+#
+# Crawling is ALLOWED on purpose. The exclusion is done with a "noindex"
+# meta tag in index.html instead, because a crawler blocked by this file
+# can never read that tag — and a blocked URL can still be listed in
+# search results, just without its content. Allowing the crawl in and
+# letting it read "noindex" is what actually removes the page.
+#
+# Do not add a Disallow rule here expecting it to hide the site.
+# To list the site in search engines, remove the two robots meta tags
+# from index.html instead.
+
+User-agent: *
+Allow: /
