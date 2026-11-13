@@ -1418,6 +1418,7 @@ async function viewOrg(id){
         <div id="finsummary"></div>
         <div id="accounts"></div>
         <div id="statefunding"></div>
+        <div id="stategrants"></div>
       </div>
       <aside>
         <div class="card" style="margin-bottom:14px">
@@ -1505,7 +1506,46 @@ async function viewOrg(id){
     renderFinSummary(k, years);
   }
   renderStateFunding(id);
+  renderGrants(id);
   if(years.length) renderAccounts(id, years);
+}
+
+/* State grant awards announced after the archive ends (updates layer).
+   Listed beside the accounts, never added into them: an award is the
+   amount announced, not income shown in a set of filed accounts.      */
+function renderGrants(id){
+  const host = document.getElementById('stategrants');
+  if(!host) return;
+  const u = DB.updates && DB.updates[id];
+  const gs = (u && u.grants) ? u.grants.slice().sort((a,b)=>(b.y-a.y)||((b.amt||0)-(a.amt||0))) : [];
+  if(!gs.length){ host.innerHTML=''; return; }
+  const srcs = DB.updates._sources || {};
+  const total = gs.reduce((s,g)=>s+(g.amt||0),0);
+  const eurExact = v => (v===null||v===undefined) ? '—'
+    : '€' + v.toLocaleString('en-IE',{minimumFractionDigits:(v%1?2:0), maximumFractionDigits:2});
+  const used = [...new Set(gs.map(g=>g.src))].map(s=>srcs[s]).filter(Boolean);
+
+  host.innerHTML = `<div class="card" style="margin-top:14px">
+    <div class="cardhead"><div class="grow">
+      <h3>State grants announced since the archive</h3>
+      <span class="mut" style="font-size:12px">Awards as published by the awarding body, added after the
+      Benefacts archive ends. An award is the amount announced, not income shown in filed accounts.</span>
+    </div></div>
+    <div class="stats" style="margin-bottom:14px"><div class="stat">
+      <span class="lab">Announced awards</span><div class="v">${esc(eurExact(Math.round(total)))}</div>
+      <div class="d">${gs.length} award${gs.length===1?'':'s'}, ${gs[gs.length-1].y}${gs[0].y!==gs[gs.length-1].y?'–'+gs[0].y:''}</div></div></div>
+    <div class="scrollx"><table class="plain">
+      <thead><tr><th>Year</th><th>Funder / programme</th><th>Project</th><th>Area</th><th class="r">Award</th></tr></thead>
+      <tbody>${gs.map(g=>`<tr>
+        <td>${esc(String(g.y))}</td>
+        <td><b>${esc(g.funder||'')}</b>${g.prog?`<div class="mut" style="font-size:11.5px">${esc(g.prog)}</div>`:''}</td>
+        <td>${esc(g.proj||'')}</td>
+        <td>${esc(g.area||'')}</td>
+        <td class="r">${esc(eurExact(g.amt))}</td></tr>`).join('')}</tbody></table></div>
+    ${used.length?`<p class="mut" style="font-size:11.5px;margin-top:10px">Source: ${used.map(s=>
+      s.url?`<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a>`:esc(s.name)
+    ).join(' · ')}${used[0].published?', published '+esc(used[0].published):''}.</p>`:''}
+  </div>`;
 }
 
 function renderFinSummary(k, years){
