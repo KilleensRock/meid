@@ -1416,6 +1416,7 @@ async function viewOrg(id){
     <div class="ocols">
       <div id="ocol-main">
         <div id="finsummary"></div>
+        <div id="updatenotes"></div>
         <div id="accounts"></div>
         <div id="statefunding"></div>
         <div id="stategrants"></div>
@@ -1505,9 +1506,27 @@ async function viewOrg(id){
   }else{
     renderFinSummary(k, years);
   }
+  renderUpdateNotes(id);
   renderStateFunding(id);
   renderGrants(id);
   if(years.length) renderAccounts(id, years);
+}
+
+/* Caveats recorded against post-archive years: anomalies in a source
+   filing, and figures deliberately left blank rather than imputed.   */
+function renderUpdateNotes(id){
+  const host = document.getElementById('updatenotes');
+  if(!host) return;
+  const u = DB.updates && DB.updates[id];
+  const notes = (u && u.notes) || [];
+  if(!notes.length || !(u.years||[]).length){ host.innerHTML=''; return; }
+  const src = updateSourceFor(id);
+  const ys = u.years.map(y=>y.y);
+  host.innerHTML = `<div class="note" style="margin-top:14px">
+    <b>About the ${esc(String(Math.min(...ys)))}–${esc(String(Math.max(...ys)))} figures</b>
+    ${src?` <span class="mut">(${esc(src.name)})</span>`:''}
+    <ul style="margin:6px 0 0 18px;padding:0">${notes.map(n=>`<li style="margin:3px 0">${esc(n)}</li>`).join('')}</ul>
+  </div>`;
 }
 
 /* State grant awards announced after the archive ends (updates layer).

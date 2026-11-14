@@ -220,5 +220,360 @@
         "src": "dcedy-lgbti-2024"
       }
     ]
+  },
+  "4210970": {
+    "name": "Corlann (formerly Brothers of Charity Services Ireland)",
+    "rcn": "20064853",
+    "src": "cra-ar",
+    "years": [
+      {
+        "y": 2021,
+        "inc": 254749883,
+        "exp": -254118466,
+        "na": 30206583,
+        "emp": 5569,
+        "ft": 4733,
+        "pt": 836,
+        "gov": 244796090,
+        "don": 0,
+        "cash": 37279714,
+        "assets": 91030439,
+        "liab": 60823856,
+        "surplus": 631417
+      },
+      {
+        "y": 2022,
+        "inc": 320918811,
+        "exp": -315161986,
+        "na": 33910385,
+        "emp": 4733,
+        "ft": 3897,
+        "pt": 836,
+        "gov": 320918811,
+        "don": 0,
+        "cash": 25850068,
+        "assets": 88134914,
+        "liab": 54224529,
+        "surplus": 5756825
+      },
+      {
+        "y": 2023,
+        "inc": 336559878,
+        "exp": -336193321,
+        "na": 38282162,
+        "emp": 4500,
+        "ft": 3800,
+        "pt": 700,
+        "gov": 336559878,
+        "don": 0,
+        "cash": 37942825,
+        "assets": 104036957,
+        "liab": 65754795,
+        "surplus": 366557
+      },
+      {
+        "y": 2024,
+        "inc": 366215587,
+        "exp": -369805283,
+        "na": 26324807,
+        "emp": 5000,
+        "ft": 4000,
+        "pt": 1000,
+        "gov": 366215587,
+        "don": 0,
+        "cash": 35499336,
+        "assets": 64380308,
+        "liab": 38055501,
+        "surplus": -3589696
+      }
+    ],
+    "notes": [
+      "Files with the Charities Regulator as Corlann, under the same charity number (RCN 20064853) as Brothers of Charity Services Ireland.",
+      "A 2025 return is also published, but its income, expenditure and surplus are identical to 2024 to the euro, so it is not used until the Regulator's figures are confirmed."
+    ]
+  },
+  "6247467": {
+    "name": "St. John of God Community Services CLG",
+    "rcn": "20069865",
+    "src": "cra-ar",
+    "years": [
+      {
+        "y": 2021,
+        "inc": 192964524,
+        "exp": -180156354,
+        "na": -6319627,
+        "emp": 2500,
+        "ft": 2000,
+        "pt": 500,
+        "gov": 179606314,
+        "don": 116163,
+        "cash": 3069630,
+        "assets": 25039062,
+        "liab": 31358689,
+        "surplus": 12808170
+      },
+      {
+        "y": 2022,
+        "inc": 199615393,
+        "exp": -198961072,
+        "na": -25180972,
+        "emp": 2493,
+        "ft": 2493,
+        "pt": 0,
+        "gov": null,
+        "don": 322662,
+        "cash": 1968590,
+        "assets": 21952600,
+        "liab": 47133572,
+        "surplus": 654321
+      },
+      {
+        "y": 2023,
+        "inc": 217900307,
+        "exp": -217214071,
+        "na": -4936669,
+        "emp": 2515,
+        "ft": 2515,
+        "pt": 0,
+        "gov": 216621376,
+        "don": 561310,
+        "cash": 1892318,
+        "assets": 37606909,
+        "liab": 42543578,
+        "surplus": 686236
+      },
+      {
+        "y": 2024,
+        "inc": 251832482,
+        "exp": -251811340,
+        "na": -4915527,
+        "emp": 2555,
+        "ft": 2555,
+        "pt": 0,
+        "gov": 229084920,
+        "don": 298770,
+        "cash": 2566827,
+        "assets": 36398408,
+        "liab": 41313935,
+        "surplus": 21142
+      }
+    ],
+    "notes": [
+      "The 2022 return records no government income and €198.7m of trading and commercial income, against €179.6m and €216.6m of government income in the years either side. The government funding figure for 2022 is left blank rather than published as zero.",
+      "This is the operating charity. Its parent, Saint John of God Hospitaller Services Group (RCN 20106515), files an unconsolidated return of about €6m a year, which is why the Group's own entry is not extended."
+    ]
+  },
+  "1542030": {
+    "name": "Concern Worldwide",
+    "rcn": "20009090",
+    "src": "cra-ar",
+    "years": [
+      {
+        "y": 2021,
+        "inc": 228353000,
+        "exp": -217312000,
+        "na": 91978000,
+        "emp": 296,
+        "ft": 279,
+        "pt": 17,
+        "gov": 169254000,
+        "don": 55231000,
+        "cash": 81549000,
+        "assets": 138218000,
+        "liab": 46240000,
+        "surplus": 11041000
+      },
+      {
+        "y": 2022,
+        "inc": 250158000,
+        "exp": -238750000,
+        "na": 103237000,
+        "emp": 274,
+        "ft": 259,
+        "pt": 15,
+        "gov": 182884000,
+        "don": 64154000,
+        "cash": 70354000,
+        "assets": 146858000,
+        "liab": 43621000,
+        "surplus": 11408000
+      },
+      {
+        "y": 2023,
+        "inc": 233403000,
+        "exp": -242303000,
+        "na": 95029000,
+        "emp": 240,
+        "ft": 231,
+        "pt": 9,
+        "gov": 173554000,
+        "don": 56236000,
+        "cash": 86996000,
+        "assets": 155827000,
+        "liab": 60798000,
+        "surplus": -8900000
+      },
+      {
+        "y": 2024,
+        "inc": 234510000,
+        "exp": -244991000,
+        "na": 84718000,
+        "emp": 244,
+        "ft": 230,
+        "pt": 14,
+        "gov": 174947000,
+        "don": 54889000,
+        "cash": 88241000,
+        "assets": 147070000,
+        "liab": 62352000,
+        "surplus": -10481000
+      }
+    ],
+    "notes": [
+      "Government funding here is the Regulator's category, which includes foreign governments and international public donors as well as the Irish State. It is not a measure of Irish State funding alone.",
+      "Employee counts are those reported to the Irish Regulator and do not include staff employed in the countries where Concern works."
+    ]
+  },
+  "6256716": {
+    "name": "GOAL",
+    "rcn": "20010980",
+    "src": "cra-ar",
+    "years": [
+      {
+        "y": 2021,
+        "inc": 170998000,
+        "exp": -171281000,
+        "na": 32250413,
+        "emp": 145,
+        "ft": 145,
+        "pt": 0,
+        "gov": 126787000,
+        "don": 2227555,
+        "cash": 33755595,
+        "assets": 52252995,
+        "liab": 20002582,
+        "surplus": -283000
+      },
+      {
+        "y": 2022,
+        "inc": 202584196,
+        "exp": -198342052,
+        "na": 36491176,
+        "emp": 150,
+        "ft": 143,
+        "pt": 7,
+        "gov": 154351274,
+        "don": 3664112,
+        "cash": 34186784,
+        "assets": 61387258,
+        "liab": 24896082,
+        "surplus": 4242144
+      },
+      {
+        "y": 2023,
+        "inc": 204515186,
+        "exp": -194823040,
+        "na": 46182015,
+        "emp": 110,
+        "ft": 93,
+        "pt": 17,
+        "gov": 153303498,
+        "don": 5696059,
+        "cash": 45249484,
+        "assets": 68536018,
+        "liab": 22354003,
+        "surplus": 9692146
+      },
+      {
+        "y": 2024,
+        "inc": 183287000,
+        "exp": -180295000,
+        "na": 49176000,
+        "emp": 110,
+        "ft": 94,
+        "pt": 16,
+        "gov": 128282000,
+        "don": 4032000,
+        "cash": 56735000,
+        "assets": 77092000,
+        "liab": 27916000,
+        "surplus": 2992000
+      }
+    ],
+    "notes": [
+      "Most of the government funding shown is the Regulator's 'other public bodies' category (€114m–€141m a year), which for an international NGO includes foreign governments and international donors. 'Government or local authorities' income, the closer measure of Irish State funding, is €11m–€15m a year.",
+      "Employee counts are those reported to the Irish Regulator and do not include staff employed overseas."
+    ]
+  },
+  "7710115": {
+    "name": "The Rehab Group",
+    "rcn": "20006716",
+    "src": "cra-ar",
+    "years": [
+      {
+        "y": 2021,
+        "inc": 151346910,
+        "exp": null,
+        "na": 67573000,
+        "emp": 2639,
+        "ft": 985,
+        "pt": 1654,
+        "gov": 129567621,
+        "don": 138812,
+        "cash": 28358000,
+        "assets": 69865000,
+        "liab": 2292000,
+        "surplus": null
+      },
+      {
+        "y": 2022,
+        "inc": 157487797,
+        "exp": -157508000,
+        "na": 66747000,
+        "emp": 2979,
+        "ft": 1127,
+        "pt": 1852,
+        "gov": 132982120,
+        "don": 122763,
+        "cash": 25740000,
+        "assets": 69037000,
+        "liab": 2290000,
+        "surplus": -20203
+      },
+      {
+        "y": 2023,
+        "inc": 173275000,
+        "exp": -167297000,
+        "na": 72760000,
+        "emp": 2982,
+        "ft": 1129,
+        "pt": 1853,
+        "gov": 148493000,
+        "don": 166000,
+        "cash": 28175000,
+        "assets": 101203000,
+        "liab": 28443000,
+        "surplus": 5978000
+      },
+      {
+        "y": 2024,
+        "inc": 184703000,
+        "exp": -180055000,
+        "na": 77408000,
+        "emp": 3036,
+        "ft": 1256,
+        "pt": 1780,
+        "gov": 156911000,
+        "don": 478000,
+        "cash": 29539000,
+        "assets": 101764000,
+        "liab": 24356000,
+        "surplus": 4648000
+      }
+    ],
+    "notes": [
+      "The 2021 return gives gross expenditure as €142,106 and a surplus of €151.2m on income of €151.3m. Expenditure is evidently understated by a factor of a thousand, but no figure is imputed: 2021 expenditure and surplus are left blank.",
+      "Total liabilities of €2.3m in 2021 and 2022 against €28.4m in 2023 may reflect a change in what was reported; they are published as filed."
+    ]
   }
 }
