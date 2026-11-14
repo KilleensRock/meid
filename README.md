@@ -91,7 +91,11 @@ sh build/all.sh
 ```
 
 `build/all.sh` rebuilds every file under `data/` and reassembles `index.html` from
-`src/`. It is deterministic: the same inputs give the same outputs.
+`src/`.
+
+To change the application without rebuilding the data, edit the files in `src/` and run
+`sh build/assemble.sh`. Edit `src/`, not `index.html`: a rebuild regenerates `index.html`
+from `src/` and would discard changes made to it directly. It is deterministic: the same inputs give the same outputs.
 
 ## Method, in brief
 

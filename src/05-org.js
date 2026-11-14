@@ -48,6 +48,7 @@ async function viewOrg(id){
         <div id="finsummary"></div>
         <div id="accounts"></div>
         <div id="statefunding"></div>
+        <div id="stategrants"></div>
       </div>
       <aside>
         <div class="card" style="margin-bottom:14px">
@@ -135,7 +136,46 @@ async function viewOrg(id){
     renderFinSummary(k, years);
   }
   renderStateFunding(id);
+  renderGrants(id);
   if(years.length) renderAccounts(id, years);
+}
+
+/* State grant awards announced after the archive ends (updates layer).
+   Listed beside the accounts, never added into them: an award is the
+   amount announced, not income shown in a set of filed accounts.      */
+function renderGrants(id){
+  const host = document.getElementById('stategrants');
+  if(!host) return;
+  const u = DB.updates && DB.updates[id];
+  const gs = (u && u.grants) ? u.grants.slice().sort((a,b)=>(b.y-a.y)||((b.amt||0)-(a.amt||0))) : [];
+  if(!gs.length){ host.innerHTML=''; return; }
+  const srcs = DB.updates._sources || {};
+  const total = gs.reduce((s,g)=>s+(g.amt||0),0);
+  const eurExact = v => (v===null||v===undefined) ? '—'
+    : '€' + v.toLocaleString('en-IE',{minimumFractionDigits:(v%1?2:0), maximumFractionDigits:2});
+  const used = [...new Set(gs.map(g=>g.src))].map(s=>srcs[s]).filter(Boolean);
+
+  host.innerHTML = `<div class="card" style="margin-top:14px">
+    <div class="cardhead"><div class="grow">
+      <h3>State grants announced since the archive</h3>
+      <span class="mut" style="font-size:12px">Awards as published by the awarding body, added after the
+      Benefacts archive ends. An award is the amount announced, not income shown in filed accounts.</span>
+    </div></div>
+    <div class="stats" style="margin-bottom:14px"><div class="stat">
+      <span class="lab">Announced awards</span><div class="v">${esc(eurExact(Math.round(total)))}</div>
+      <div class="d">${gs.length} award${gs.length===1?'':'s'}, ${gs[gs.length-1].y}${gs[0].y!==gs[gs.length-1].y?'–'+gs[0].y:''}</div></div></div>
+    <div class="scrollx"><table class="plain">
+      <thead><tr><th>Year</th><th>Funder / programme</th><th>Project</th><th>Area</th><th class="r">Award</th></tr></thead>
+      <tbody>${gs.map(g=>`<tr>
+        <td>${esc(String(g.y))}</td>
+        <td><b>${esc(g.funder||'')}</b>${g.prog?`<div class="mut" style="font-size:11.5px">${esc(g.prog)}</div>`:''}</td>
+        <td>${esc(g.proj||'')}</td>
+        <td>${esc(g.area||'')}</td>
+        <td class="r">${esc(eurExact(g.amt))}</td></tr>`).join('')}</tbody></table></div>
+    ${used.length?`<p class="mut" style="font-size:11.5px;margin-top:10px">Source: ${used.map(s=>
+      s.url?`<a href="${esc(s.url)}" target="_blank" rel="noopener noreferrer">${esc(s.name)}</a>`:esc(s.name)
+    ).join(' · ')}${used[0].published?', published '+esc(used[0].published):''}.</p>`:''}
+  </div>`;
 }
 
 function renderFinSummary(k, years){
@@ -149,8 +189,18 @@ function renderFinSummary(k, years){
   const last = years[years.length-1];
   const li = finVal(k,'inc',last), le = finVal(k,'exp',last);
   const surplus = (li!=null&&le!=null) ? li+le : null;   // expenditure is negative in source
+  const updated = years.filter(y=>yearProvenance(k,y)===PROV_UPDATE);
+  const usrc = updateSourceFor(C().id[k]);
 
   host.innerHTML = `
+    ${updated.length && usrc ? `<div class="note" style="margin-bottom:15px">
+      <b>${updated.length} year${updated.length===1?'':'s'} here (${updated.join(', ')}) come from
+      ${esc(usrc.name)}, not from the Benefacts archive.</b>
+      They are headline figures from the charity's annual return on the Regulator's own definitions,
+      so they are not line-for-line comparable with the earlier years: there is no breakdown of the
+      accounts behind them, and the staff figure is a headcount of full- and part-time employees
+      rather than an average over the year. Retrieved ${esc(usrc.retrieved)}.
+    </div>` : ''}
     <div class="stats" style="margin-bottom:16px">
       <div class="stat"><span class="lab">Income · FY ${last}</span><div class="v">${esc(eurShort(li))}</div>
         <div class="d">${li==null?'not stated':'total income & endowments'}</div></div>
@@ -160,7 +210,7 @@ function renderFinSummary(k, years){
         <div class="v" style="color:${surplus==null?'inherit':surplus>=0?'var(--good)':'var(--crit)'}">${esc(eurShort(surplus))}</div>
         <div class="d">${surplus==null?'not calculable':'income less expenditure'}</div></div>
       <div class="stat"><span class="lab">Employees</span><div class="v">${esc(int(finVal(k,'emp',last)))}</div>
-        <div class="d">average in the year</div></div>
+        <div class="d">${yearProvenance(k,last)===PROV_UPDATE ? 'full- and part-time headcount' : 'average in the year'}</div></div>
       <div class="stat"><span class="lab">Net assets</span><div class="v">${esc(eurShort(finVal(k,'na',last)))}</div>
         <div class="d">balance sheet</div></div>
     </div>
@@ -190,13 +240,15 @@ function renderFinSummary(k, years){
 
   document.getElementById('ftable').innerHTML = `<div class="scrollx"><table class="plain">
     <thead><tr><th>Financial year</th><th class="r">Income</th><th class="r">Expenditure</th>
-    <th class="r">Surplus / deficit</th><th class="r">Employees</th><th class="r">Govt funding</th></tr></thead>
+    <th class="r">Surplus / deficit</th><th class="r">Employees</th><th class="r">Govt funding</th><th>Source</th></tr></thead>
     <tbody>${years.map((y,i)=>{
       const s = (inc[i]!=null&&exp[i]!=null)?inc[i]-exp[i]:null;
-      return `<tr><td class="num">${y}</td><td class="r">${esc(eur(inc[i]))}</td>
+      const up = yearProvenance(k,y)===PROV_UPDATE;
+      return `<tr><td class="num">${y}${up?' <span class="bdg wn">new</span>':''}</td><td class="r">${esc(eur(inc[i]))}</td>
         <td class="r">${esc(eur(exp[i]))}</td>
         <td class="r" style="color:${s==null?'inherit':s>=0?'var(--good)':'var(--crit)'}">${esc(eur(s))}</td>
-        <td class="r">${esc(int(emp[i]))}</td><td class="r">${esc(eur(gov[i]))}</td></tr>`;
+        <td class="r">${esc(int(emp[i]))}</td><td class="r">${esc(eur(gov[i]))}</td>
+        <td class="mut" style="font-size:11.5px">${up?esc((usrc&&usrc.name)||'Charities Regulator'):'Benefacts archive'}</td></tr>`;
     }).join('')}</tbody></table></div>`;
 
   document.querySelectorAll('#fvt button').forEach(b=>{

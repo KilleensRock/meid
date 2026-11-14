@@ -136,6 +136,84 @@ function finYears(k){
   return rows ? rows.map(r=>DB.fin.cols.yr[r]) : [];
 }
 
+/* ---------------- post-archive updates ----------------
+   Years added from sources outside the Benefacts archive. They are merged
+   into the financial table so they sort, filter and chart like any other
+   year, but each carries a provenance marker so the source is never lost.
+   An update never overwrites an archive year: where both hold a year, the
+   archive stands and the update is dropped.                              */
+const PROV_ARCHIVE = 0, PROV_UPDATE = 1;
+
+function hasFinRow(k, year){
+  const rows = DB.finByOrg && DB.finByOrg.get(k);
+  if(!rows) return false;
+  for(const r of rows) if(DB.fin.cols.yr[r] === year) return true;
+  return false;
+}
+
+function applyUpdates(){
+  if(!DB.updates || !DB.finReady || DB.updatesApplied) return;
+  const f = DB.fin.cols;
+  if(!f.prov) f.prov = new Array(DB.fin.n).fill(PROV_ARCHIVE);
+  const FIELDS = ['inc','exp','na','fr','emp','pay','gov','ngov','ftot','vol','kmp','don','grants','cash'];
+  let added = 0, skipped = 0;
+
+  for(const id in DB.updates){
+    if(id.charAt(0) === '_') continue;
+    const k = DB.byId.get(id);
+    if(k === undefined) continue;
+    for(const y of (DB.updates[id].years || [])){
+      if(hasFinRow(k, y.y)){ skipped++; continue; }
+      f.oi.push(k); f.yr.push(y.y); f.src.push(-1); f.flags.push(0);
+      f.prov.push(PROV_UPDATE);
+      for(const fld of FIELDS) f[fld].push(y[fld] === undefined ? null : y[fld]);
+      DB.fin.n++; added++;
+    }
+  }
+  if(added){
+    buildFinIndex();
+    for(const id in DB.updates){
+      if(id.charAt(0) === '_') continue;
+      const k = DB.byId.get(id);
+      if(k !== undefined) refreshLatest(k);
+    }
+  }
+  DB.updatesApplied = true;
+  DB.updateStats = {added, skipped};
+}
+
+/** Re-point an organisation's latest-year summary at its newest year. */
+function refreshLatest(k){
+  const rows = DB.finByOrg.get(k);
+  if(!rows || !rows.length) return;
+  const f = DB.fin.cols, last = rows[rows.length - 1];
+  const c = C();
+  c.ly[k] = f.yr[last];
+  c.linc[k] = finVal(k,'inc','latest');
+  c.lexp[k] = finVal(k,'exp','latest');
+  c.lna[k]  = finVal(k,'na','latest');
+  c.lfr[k]  = finVal(k,'fr','latest');
+  c.lemp[k] = finVal(k,'emp','latest');
+  c.lpay[k] = finVal(k,'pay','latest');
+  c.lgov[k] = finVal(k,'gov','latest');
+  c.nyr[k]  = rows.length;
+  c.y1[k]   = f.yr[last];
+  c.reg[k] |= R_ACC;
+}
+
+/** Provenance of one organisation-year, for labelling in the profile. */
+function yearProvenance(k, year){
+  const rows = DB.finByOrg && DB.finByOrg.get(k);
+  if(!rows || !DB.fin.cols.prov) return null;
+  for(const r of rows) if(DB.fin.cols.yr[r] === year) return DB.fin.cols.prov[r];
+  return null;
+}
+function updateSourceFor(id){
+  const u = DB.updates && DB.updates[id];
+  if(!u) return null;
+  return (DB.updates._sources || {})[u.src] || null;
+}
+
 /* lazily fetched per-organisation buckets */
 async function loadDetail(id){
   const b = id.slice(-2).padStart(2,'0');
@@ -170,8 +248,11 @@ async function boot(){
     initChrome(); route();
 
     // background: everything the first screen does not need
-    grab('data/fin.json').then(f=>{
-      DB.fin=f; buildFinIndex(); DB.finReady=true; onDataArrived('fin');
+    grab('data/fin.json').then(async f=>{
+      DB.fin=f; buildFinIndex(); DB.finReady=true;
+      try{ DB.updates = await grab('data/updates.json'); applyUpdates(); }
+      catch(e){ /* the register still works without the update layer */ }
+      onDataArrived('fin');
     }).catch(e=>console.warn('fin',e));
     grab('data/orgs-ext.json').then(x=>{
       DB.ext=x; DB.extReady=true; onDataArrived('ext');
