@@ -21,6 +21,20 @@
       "published": "2024-12-20",
       "retrieved": "2026-11-13",
       "notes": "Press release announcing 24 projects: 15 under the 2024 LGBTI+ Community Services Funding Call (Scheme A €25,000–€100,000; Scheme B €5,000–€10,000) and 9 under the LGBTI+ Youth Fund 2024. Amounts are recorded to the cent as published."
+    },
+    "probation-ar-2024": {
+      "name": "Probation Service — Annual Report 2024, Appendix 7",
+      "url": "https://assets.gov.ie/static/documents/TAB_A_Probation_Service_Annual_Report_2024_FINAL.pdf",
+      "licence": "Re-use of public sector information",
+      "retrieved": "2026-11-16",
+      "notes": "Appendix 7, 'Breakdown of funding streams for Community Based Organisations'. One row per organisation with three columns — Grant Funding, Additional Funding, Capital Funding — and a total; the table's own total is 'CBO Total Funding Spent in 2024', €18,951,340. Each column is recorded here as its own row. These are amounts the Probation Service reports as spent in the year, not awards announced in advance."
+    },
+    "probation-ar-2025": {
+      "name": "Probation Service — Annual Report 2025, Appendix 8",
+      "url": "https://assets.gov.ie/static/documents/2165b58d/Probation_Service_Annual_Report_2025.pdf",
+      "licence": "Re-use of public sector information",
+      "retrieved": "2026-11-16",
+      "notes": "Appendix 8, 'Community Based Organisations & 2025 funding'. One figure per organisation, with no split into grant, additional and capital funding and no total row, so it is not on the same basis as the 2024 table. The appendix states that additional 2025 funding went to community organisations for extra expenditure, new pilot initiatives and new services, some of which may cover spending in 2026; that additional funding is not itemised by organisation."
     }
   },
   "6752590": {
@@ -574,6 +588,49 @@
     "notes": [
       "The 2021 return gives gross expenditure as €142,106 and a surplus of €151.2m on income of €151.3m. Expenditure is evidently understated by a factor of a thousand, but no figure is imputed: 2021 expenditure and surplus are left blank.",
       "Total liabilities of €2.3m in 2021 and 2022 against €28.4m in 2023 may reflect a change in what was reported; they are published as filed."
+    ]
+  },
+  "7050679": {
+    "name": "PACE (Prisoners Aid through Community Effort) CLG",
+    "rcn": "20032418",
+    "years": [],
+    "grants": [
+      {
+        "y": 2024,
+        "amt": 2064000,
+        "funder": "Probation Service",
+        "prog": "Community Based Organisations funding — Core — Grant Funding",
+        "proj": "Funding spent in 2024, as reported; covers the organisation as a whole and is not broken down by service",
+        "area": "",
+        "src": "probation-ar-2024"
+      },
+      {
+        "y": 2024,
+        "amt": 277920,
+        "funder": "Probation Service",
+        "prog": "Community Based Organisations funding — Core — Additional Funding",
+        "proj": "Funding spent in 2024, as reported",
+        "area": "",
+        "src": "probation-ar-2024"
+      },
+      {
+        "y": 2024,
+        "amt": 72000,
+        "funder": "Probation Service",
+        "prog": "Community Based Organisations funding — Core — Capital Funding",
+        "proj": "Funding spent in 2024, as reported",
+        "area": "",
+        "src": "probation-ar-2024"
+      },
+      {
+        "y": 2025,
+        "amt": 2126000,
+        "funder": "Probation Service",
+        "prog": "Community Based Organisations — 2025 funding",
+        "proj": "Single published figure; any additional 2025 funding is not itemised by organisation, so this is not comparable with the 2024 total",
+        "area": "Dublin 15",
+        "src": "probation-ar-2025"
+      }
     ]
   }
 }
