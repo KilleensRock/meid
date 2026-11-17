@@ -1602,5 +1602,77 @@
       }
     ],
     "notes": []
+  },
+  "2206810": {
+    "name": "Crosscare (St. Laurence O'Toole Catholic Social Care CLG)",
+    "rcn": "20169084",
+    "src": "cra-ar",
+    "years": [
+      {
+        "y": 2021,
+        "inc": 23738493,
+        "exp": -23391132,
+        "na": 11544475,
+        "emp": 492,
+        "ft": 284,
+        "pt": 208,
+        "gov": 19771230,
+        "don": 694029,
+        "cash": 6044170,
+        "assets": 16280962,
+        "liab": 4736487,
+        "surplus": 347361
+      },
+      {
+        "y": 2022,
+        "inc": 24819635,
+        "exp": -24432648,
+        "na": 11897014,
+        "emp": 522,
+        "ft": 303,
+        "pt": 219,
+        "gov": 21003704,
+        "don": 1354670,
+        "cash": 7578652,
+        "assets": 17309916,
+        "liab": 5412902,
+        "surplus": 386987
+      },
+      {
+        "y": 2023,
+        "inc": 26203556,
+        "exp": -26386542,
+        "na": 11714028,
+        "emp": 567,
+        "ft": 320,
+        "pt": 247,
+        "gov": 23412676,
+        "don": 842342,
+        "cash": 8637298,
+        "assets": 17415157,
+        "liab": 5701129,
+        "surplus": -182986
+      },
+      {
+        "y": 2024,
+        "inc": 27734243,
+        "exp": -27371473,
+        "na": 12076798,
+        "emp": 430,
+        "ft": 294,
+        "pt": 136,
+        "gov": 24918254,
+        "don": 694284,
+        "cash": 8669676,
+        "assets": 17457348,
+        "liab": 5380550,
+        "surplus": 362770
+      }
+    ],
+    "notes": [
+      "Crosscare is the registered business name of this company; its returns are filed under the legal name, RCN 20169084.",
+      "Crosscare runs homeless and residential services alongside food, community and youth services, so these are whole-organisation figures, not homelessness-only spending.",
+      "Part-time staff fell from 247 in 2023 to 136 in 2024."
+    ]
   }
 }
