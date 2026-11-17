@@ -5,5 +5,5 @@
 set -e
 cd "$(dirname "$0")/.."
 cat src/01-head.html src/02-data.js src/03-charts.js src/04-explore.js \
-    src/05-org.js src/06-analyse.js src/07-coverage.js src/08-router.js > index.html
+    src/05-org.js src/06-analyse.js src/07-coverage.js src/085-local.js src/08-router.js > index.html
 echo "index.html $(wc -c < index.html) bytes"

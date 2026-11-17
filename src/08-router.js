@@ -9,6 +9,7 @@ const VIEWS = [
   {id:'explore',  label:'Register'},
   {id:'analyse',  label:'Analyse'},
   {id:'funding',  label:'State funding'},
+  {id:'local',    label:'Local'},
   {id:'coverage', label:'Coverage'},
   {id:'about',    label:'About'},
 ];
@@ -65,7 +66,7 @@ function route(){
   const view = VIEWS.find(v=>v.id===h) ? h : 'explore';
   setNav(view);
   ({explore:viewExplore, analyse:viewAnalyse, funding:viewFunding,
-    coverage:viewCoverage, about:viewAbout})[view]();
+    coverage:viewCoverage, about:viewAbout, local:viewLocal})[view]();
   window.scrollTo(0,0);
 }
 function setNav(active){

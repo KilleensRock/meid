@@ -1,0 +1,701 @@
+{
+ "_about": "Curated groups for the Local view: which updated organisations count as locally relevant, their current registered names, their group, and whether they work nationally (true) rather than in the county of their registered address. Edit this file to add or regroup organisations, then run build/build_local.py.",
+ "orgs": {
+  "3047044": {
+   "rcn": "20032173",
+   "name": "Tiglin Challenge",
+   "group": "Homeless and addiction services",
+   "national": false
+  },
+  "4744962": {
+   "rcn": "20015107",
+   "name": "Focus Ireland",
+   "group": "Homeless and addiction services",
+   "national": true
+  },
+  "8222107": {
+   "rcn": "20015282",
+   "name": "Peter McVerry Trust",
+   "group": "Homeless and addiction services",
+   "national": true
+  },
+  "4196350": {
+   "rcn": "20009892",
+   "name": "Dublin Simon Community",
+   "group": "Homeless and addiction services",
+   "national": false
+  },
+  "3892874": {
+   "rcn": "20048938",
+   "name": "Depaul Ireland",
+   "group": "Homeless and addiction services",
+   "national": true
+  },
+  "3881804": {
+   "rcn": "20041533",
+   "name": "Arlington Novas Ireland",
+   "group": "Homeless and addiction services",
+   "national": true
+  },
+  "5074362": {
+   "rcn": "20026240",
+   "name": "Merchants Quay Ireland",
+   "group": "Homeless and addiction services",
+   "national": true
+  },
+  "2203268": {
+   "rcn": "20022914",
+   "name": "Cork Simon Community",
+   "group": "Homeless and addiction services",
+   "national": false
+  },
+  "2621791": {
+   "rcn": "20018962",
+   "name": "Simon Community (Galway)",
+   "group": "Homeless and addiction services",
+   "national": false
+  },
+  "8493520": {
+   "rcn": "20011314",
+   "name": "Cope Galway",
+   "group": "Homeless and addiction services",
+   "national": false
+  },
+  "6015570": {
+   "rcn": "20042363",
+   "name": "Sophia Housing Association",
+   "group": "Homeless and addiction services",
+   "national": false
+  },
+  "1998004": {
+   "rcn": "20063450",
+   "name": "Mid West Simon Community",
+   "group": "Homeless and addiction services",
+   "national": false
+  },
+  "2948840": {
+   "rcn": "20166120",
+   "name": "Capuchin Day Centre for Homeless People",
+   "group": "Homeless and addiction services",
+   "national": false
+  },
+  "1952336": {
+   "rcn": "20011031",
+   "name": "Threshold",
+   "group": "Homeless and addiction services",
+   "national": true
+  },
+  "2206810": {
+   "rcn": "20169084",
+   "name": "Crosscare (St. Laurence O'Toole Catholic Social Care CLG)",
+   "group": "Homeless and addiction services",
+   "national": false
+  },
+  "6304502": {
+   "rcn": "20025724",
+   "name": "Irish Refugee Council",
+   "group": "Integration and anti-racism",
+   "national": true
+  },
+  "5047668": {
+   "rcn": "20061982",
+   "name": "Immigrant Council of Ireland",
+   "group": "Integration and anti-racism",
+   "national": true
+  },
+  "4007591": {
+   "rcn": "20043612",
+   "name": "Nasc, the Migrant and Refugee Rights Centre",
+   "group": "Integration and anti-racism",
+   "national": false
+  },
+  "7437229": {
+   "rcn": "20050177",
+   "name": "Doras Luimní",
+   "group": "Integration and anti-racism",
+   "national": false
+  },
+  "1897304": {
+   "rcn": "20040888",
+   "name": "Sport Against Racism Ireland",
+   "group": "Integration and anti-racism",
+   "national": true
+  },
+  "3099861": {
+   "rcn": "20064198",
+   "name": "Jesuit Refugee Service Ireland",
+   "group": "Integration and anti-racism",
+   "national": true
+  },
+  "6836207": {
+   "rcn": "20062873",
+   "name": "Migrant Information Centre",
+   "group": "Integration and anti-racism",
+   "national": false
+  },
+  "7639316": {
+   "rcn": "20073671",
+   "name": "New Communities Partnership",
+   "group": "Integration and anti-racism",
+   "national": true
+  },
+  "8341292": {
+   "rcn": "20024550",
+   "name": "Cairde",
+   "group": "Integration and anti-racism",
+   "national": true
+  },
+  "5503438": {
+   "rcn": "20107369",
+   "name": "Places of Sanctuary Ireland",
+   "group": "Integration and anti-racism",
+   "national": true
+  },
+  "6570397": {
+   "rcn": "20206637",
+   "name": "The Sanctuary Runners",
+   "group": "Integration and anti-racism",
+   "national": true
+  },
+  "6668851": {
+   "rcn": "20068714",
+   "name": "Clare Immigrant Support Centre",
+   "group": "Integration and anti-racism",
+   "national": false
+  },
+  "2720303": {
+   "rcn": "20065621",
+   "name": "Welcome Immigrant Centre",
+   "group": "Integration and anti-racism",
+   "national": false
+  },
+  "5577749": {
+   "rcn": "20001896",
+   "name": "Iveagh Trust",
+   "group": "Approved housing body",
+   "national": false
+  },
+  "4587137": {
+   "rcn": "20012182",
+   "name": "Co-operative Housing Ireland Society",
+   "group": "Approved housing body",
+   "national": true
+  },
+  "2203310": {
+   "rcn": "20012625",
+   "name": "Respond",
+   "group": "Approved housing body",
+   "national": true
+  },
+  "1745891": {
+   "rcn": "20013394",
+   "name": "Housing Association For Integrated Living",
+   "group": "Approved housing body",
+   "national": true
+  },
+  "2192461": {
+   "rcn": "20022624",
+   "name": "Focus Housing Association",
+   "group": "Approved housing body",
+   "national": true
+  },
+  "8101107": {
+   "rcn": "20029074",
+   "name": "North and East Housing Association",
+   "group": "Approved housing body",
+   "national": false
+  },
+  "5464106": {
+   "rcn": "20029975",
+   "name": "Clúid Housing Association",
+   "group": "Approved housing body",
+   "national": true
+  },
+  "2179324": {
+   "rcn": "20042752",
+   "name": "Newgrove Housing Association",
+   "group": "Approved housing body",
+   "national": true
+  },
+  "8507918": {
+   "rcn": "20044589",
+   "name": "Oaklee Housing",
+   "group": "Approved housing body",
+   "national": true
+  },
+  "2869833": {
+   "rcn": "20046613",
+   "name": "Tuath Housing Association",
+   "group": "Approved housing body",
+   "national": true
+  },
+  "6411500": {
+   "rcn": "20047351",
+   "name": "Clanmil Housing Association Ireland",
+   "group": "Approved housing body",
+   "national": true
+  },
+  "8708952": {
+   "rcn": "20051518",
+   "name": "Fold Housing Association Ireland",
+   "group": "Approved housing body",
+   "national": true
+  },
+  "7851104": {
+   "rcn": "20053840",
+   "name": "Circle Voluntary Housing Association",
+   "group": "Approved housing body",
+   "national": true
+  },
+  "8268120": {
+   "rcn": "20058296",
+   "name": "Saoirse Housing Association",
+   "group": "Approved housing body",
+   "national": false
+  },
+  "2218657": {
+   "rcn": "20061272",
+   "name": "Fréamha Housing Association",
+   "group": "Approved housing body",
+   "national": false
+  },
+  "5507533": {
+   "rcn": "20069834",
+   "name": "Saint John of God Housing Association",
+   "group": "Approved housing body",
+   "national": false
+  },
+  "6152828": {
+   "rcn": "20157746",
+   "name": "Depaul Housing Association",
+   "group": "Approved housing body",
+   "national": true
+  },
+  "7820759": {
+   "rcn": "20205427",
+   "name": "Kilkenny Voluntary Housing Association",
+   "group": "Approved housing body",
+   "national": false
+  },
+  "4948075": {
+   "rcn": "20024925",
+   "name": "Forum Connemara",
+   "group": "Local development company",
+   "national": false
+  },
+  "7349702": {
+   "rcn": "20026691",
+   "name": "South West Mayo Development",
+   "group": "Local development company",
+   "national": false
+  },
+  "5642490": {
+   "rcn": "20027186",
+   "name": "South Kerry Development Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "3836096": {
+   "rcn": "20027544",
+   "name": "Ballyhoura Development",
+   "group": "Local development company",
+   "national": false
+  },
+  "6363253": {
+   "rcn": "20029296",
+   "name": "IRD Duhallow",
+   "group": "Local development company",
+   "national": false
+  },
+  "7805043": {
+   "rcn": "20029524",
+   "name": "Northside Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "1301434": {
+   "rcn": "20029692",
+   "name": "Limerick City Area Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "2411176": {
+   "rcn": "20031305",
+   "name": "Donegal Local Development",
+   "group": "Local development company",
+   "national": false
+  },
+  "2693027": {
+   "rcn": "20032050",
+   "name": "Dublin North West Area Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "6200854": {
+   "rcn": "20032265",
+   "name": "Longford Community Resources",
+   "group": "Local development company",
+   "national": false
+  },
+  "6806709": {
+   "rcn": "20032685",
+   "name": "Secad Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "4983652": {
+   "rcn": "20034535",
+   "name": "Westmeath Community Development",
+   "group": "Local development company",
+   "national": false
+  },
+  "2826203": {
+   "rcn": "20035228",
+   "name": "Waterford Area Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "7111182": {
+   "rcn": "20037826",
+   "name": "Bray & North Wicklow Area Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "4980702": {
+   "rcn": "20040031",
+   "name": "Empower Local Development",
+   "group": "Local development company",
+   "national": false
+  },
+  "4749295": {
+   "rcn": "20042509",
+   "name": "County Sligo Leader Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "3588252": {
+   "rcn": "20044688",
+   "name": "Galway City Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "6962438": {
+   "rcn": "20053543",
+   "name": "Dublin South City Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "1821897": {
+   "rcn": "20064235",
+   "name": "Meath Community Rural and Social Development Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "1895294": {
+   "rcn": "20067519",
+   "name": "Comhar na nOileán",
+   "group": "Local development company",
+   "national": false
+  },
+  "7711147": {
+   "rcn": "20067786",
+   "name": "Inishowen Development Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "7272193": {
+   "rcn": "20067946",
+   "name": "North Tipperary Development Company",
+   "group": "Local development company",
+   "national": false
+  },
+  "8577084": {
+   "rcn": "20068028",
+   "name": "County Kildare Leader Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "6905482": {
+   "rcn": "20068127",
+   "name": "Louth Local Development",
+   "group": "Local development company",
+   "national": false
+  },
+  "3680723": {
+   "rcn": "20068172",
+   "name": "Cork City Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "7783713": {
+   "rcn": "20068660",
+   "name": "Clare Local Development Company",
+   "group": "Local development company",
+   "national": false
+  },
+  "2858008": {
+   "rcn": "20068684",
+   "name": "South Tipperary Development",
+   "group": "Local development company",
+   "national": false
+  },
+  "4058549": {
+   "rcn": "20068691",
+   "name": "Wexford Local Development",
+   "group": "Local development company",
+   "national": false
+  },
+  "5014173": {
+   "rcn": "20068776",
+   "name": "Fingal Leader Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "7464705": {
+   "rcn": "20069346",
+   "name": "County Kilkenny Leader Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "7542760": {
+   "rcn": "20069681",
+   "name": "Avondhu/Blackwater Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "7891334": {
+   "rcn": "20070045",
+   "name": "Laois Community and Enterprise Development",
+   "group": "Local development company",
+   "national": false
+  },
+  "4222313": {
+   "rcn": "20070595",
+   "name": "Mayo North East Leader Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "4606214": {
+   "rcn": "20070694",
+   "name": "Carlow County Development Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "1717600": {
+   "rcn": "20070700",
+   "name": "Leitrim Integrated Development",
+   "group": "Local development company",
+   "national": false
+  },
+  "8162149": {
+   "rcn": "20070717",
+   "name": "North and East Kerry Leader Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "1711064": {
+   "rcn": "20070748",
+   "name": "Waterford Leader Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "6711294": {
+   "rcn": "20070878",
+   "name": "Roscommon Integrated Development",
+   "group": "Local development company",
+   "national": false
+  },
+  "3004475": {
+   "rcn": "20071257",
+   "name": "West Cork Development Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "1687457": {
+   "rcn": "20071486",
+   "name": "Monaghan Integrated Development",
+   "group": "Local development company",
+   "national": false
+  },
+  "7999920": {
+   "rcn": "20072551",
+   "name": "Offaly Integrated Local Development",
+   "group": "Local development company",
+   "national": false
+  },
+  "3751320": {
+   "rcn": "20073848",
+   "name": "Breffni Integrated",
+   "group": "Local development company",
+   "national": false
+  },
+  "7103696": {
+   "rcn": "20082949",
+   "name": "SDC South Dublin County Partnership",
+   "group": "Local development company",
+   "national": false
+  },
+  "8118735": {
+   "rcn": "20021023",
+   "name": "Southside Travellers Action Group",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "6175089": {
+   "rcn": "20024949",
+   "name": "The Clondalkin Travellers Development Group",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "3492094": {
+   "rcn": "20025212",
+   "name": "Tipperary Rural Travellers Project",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "1318639": {
+   "rcn": "20026134",
+   "name": "Navan Travellers Workshops",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "4065424": {
+   "rcn": "20031367",
+   "name": "Traveller Visibility Group",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "7641889": {
+   "rcn": "20032258",
+   "name": "Dublin Travellers Education & Development Group",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "6976055": {
+   "rcn": "20033576",
+   "name": "Wicklow Travellers Group",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "7509070": {
+   "rcn": "20035426",
+   "name": "Donegal Travellers Project",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "5960321": {
+   "rcn": "20037987",
+   "name": "Travellers Support Group Blanchardstown",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "5905783": {
+   "rcn": "20038182",
+   "name": "Kerry Travellers Health & Community Development Project",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "8456828": {
+   "rcn": "20045364",
+   "name": "National Traveller Women's Forum",
+   "group": "Traveller organisation",
+   "national": true
+  },
+  "4589196": {
+   "rcn": "20045418",
+   "name": "Irish Traveller Movement",
+   "group": "Traveller organisation",
+   "national": true
+  },
+  "2362563": {
+   "rcn": "20050467",
+   "name": "Tallaght Travellers Community Development Project",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "5944104": {
+   "rcn": "20051303",
+   "name": "Ballyfermot Travellers Action Project",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "2633879": {
+   "rcn": "20053864",
+   "name": "St. Margaret's Travellers Community Association",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "4971555": {
+   "rcn": "20055936",
+   "name": "Cork Traveller Women's Network",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "2845380": {
+   "rcn": "20058388",
+   "name": "National Traveller Money Advice & Budgeting Service MABS",
+   "group": "Traveller organisation",
+   "national": true
+  },
+  "1913282": {
+   "rcn": "20060039",
+   "name": "West Cork Traveller Centre Association",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "3787397": {
+   "rcn": "20060480",
+   "name": "Sligo Traveller Support Group",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "1580659": {
+   "rcn": "20060510",
+   "name": "Kildare Traveller Action",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "7066972": {
+   "rcn": "20071851",
+   "name": "Traveller Counselling Service",
+   "group": "Traveller organisation",
+   "national": true
+  },
+  "6757146": {
+   "rcn": "20108496",
+   "name": "Galway Traveller Movement",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "7855661": {
+   "rcn": "20153496",
+   "name": "National Traveller Partnership",
+   "group": "Traveller organisation",
+   "national": true
+  },
+  "2192477": {
+   "rcn": "20201280",
+   "name": "Cavan Travellers Movement",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "1319235": {
+   "rcn": "20204733",
+   "name": "Offaly Traveller Movement",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "4652547": {
+   "rcn": "20205673",
+   "name": "Northside Travellers Support",
+   "group": "Traveller organisation",
+   "national": false
+  },
+  "6729416": {
+   "rcn": "20206261",
+   "name": "Waterford Traveller Community Development Project",
+   "group": "Traveller organisation",
+   "national": false
+  }
+ }
+}
