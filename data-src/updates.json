@@ -632,5 +632,94 @@
         "src": "probation-ar-2025"
       }
     ]
+  },
+  "3047044": {
+    "name": "Tiglin Challenge",
+    "rcn": "20032173",
+    "src": "cra-ar",
+    "years": [
+      {
+        "y": 2020,
+        "inc": 2227424,
+        "exp": -1915731,
+        "na": null,
+        "emp": null,
+        "ft": null,
+        "pt": null,
+        "gov": 1273746,
+        "don": 756163,
+        "cash": null,
+        "assets": null,
+        "liab": null,
+        "surplus": null
+      },
+      {
+        "y": 2021,
+        "inc": 2393811,
+        "exp": -2182459,
+        "na": 2111847,
+        "emp": 89,
+        "ft": 37,
+        "pt": 52,
+        "gov": 1401355,
+        "don": 489346,
+        "cash": 469640,
+        "assets": 2876879,
+        "liab": 765032,
+        "surplus": 211352
+      },
+      {
+        "y": 2022,
+        "inc": 4337012,
+        "exp": -3125243,
+        "na": 2446445,
+        "emp": 112,
+        "ft": 40,
+        "pt": 72,
+        "gov": 2775262,
+        "don": 1561750,
+        "cash": 1095819,
+        "assets": 3472930,
+        "liab": 1026485,
+        "surplus": 1211769
+      },
+      {
+        "y": 2023,
+        "inc": 6535072,
+        "exp": -3702063,
+        "na": 4372986,
+        "emp": 139,
+        "ft": 59,
+        "pt": 80,
+        "gov": 3407603,
+        "don": 484671,
+        "cash": 2313974,
+        "assets": 4592099,
+        "liab": 219113,
+        "surplus": 2833009
+      },
+      {
+        "y": 2024,
+        "inc": 5822104,
+        "exp": -5075048,
+        "na": 5500427,
+        "emp": 122,
+        "ft": 42,
+        "pt": 80,
+        "gov": 4923409,
+        "don": 898695,
+        "cash": 3306114,
+        "assets": 5881157,
+        "liab": 380730,
+        "surplus": 747056
+      }
+    ],
+    "notes": [
+      "Trading names include Tiglin, Teen Challenge (Ireland), Tiglin Therapeutic Community Ireland and Tiglin Day Centre.",
+      "The 2020 return gives income and expenditure only; assets, liabilities and staff numbers were not reported, so they are left blank. The return gives staff as a band of 50–249.",
+      "Gross income rose from €2.4m in 2021 to €6.5m in 2023 and €5.8m in 2024. Government and local authority income rose from €1.3m in 2021 to €4.9m in 2024.",
+      "2023 income includes €2.64m recorded as 'other sources', which accounts for most of that year's €2.83m surplus. The return does not say what it was.",
+      "Full-time staff fell from 59 in 2023 to 42 in 2024, while gross expenditure rose from €3.7m to €5.1m."
+    ]
   }
 }
